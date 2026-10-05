@@ -2,7 +2,7 @@
 import { player } from './player.js';
 import { ITEMS } from './data.js';
 import { rand, randInt, clamp, sleep, escapeHtml } from './util.js';
-import { sfx } from './sound.js';
+import { sfx, stopBgm } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
 let msgLines = [];
@@ -396,6 +396,8 @@ export async function startBattle(spawn, onUpdate) {
     onUpdate && onUpdate();
   }
 
+  // 勝ち・負け・にげるの瞬間はせんとう曲を止めて、ファンファーレを聞かせる
+  stopBgm(0.1);
   if (result === 'win') {
     icon.className = 'dead';
     sfx.win();
