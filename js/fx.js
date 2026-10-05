@@ -2,6 +2,7 @@
 // Web Animations API で動かし、終わるまで await できる Promise を返す。
 import { sfx } from './sound.js';
 import { sleep, rand } from './util.js';
+import * as hero from './hero.js';
 
 const $ = (id) => document.getElementById(id);
 const SVGNS = 'http://www.w3.org/2000/svg';
@@ -46,16 +47,6 @@ const polar = (cx, cy, r, deg) => {
   return { x: cx + r * Math.sin(t), y: cy - r * Math.cos(t) };
 };
 
-const SWORD_SVG = `
-<svg viewBox="0 0 36 170" width="36" height="170" aria-hidden="true">
-  <defs><linearGradient id="fxBlade" x1="0" x2="1"><stop offset="0" stop-color="#fdfeff"/><stop offset=".5" stop-color="#c9d4e2"/><stop offset="1" stop-color="#8592a6"/></linearGradient></defs>
-  <path d="M18 0l7 16v104H11V16z" fill="url(#fxBlade)" stroke="#4b5566" stroke-width="1.5"/>
-  <path d="M18 18v98" stroke="#ffffff" stroke-width="1.5" opacity=".8"/>
-  <rect x="1" y="118" width="34" height="9" rx="3" fill="#f2c14e" stroke="#7a5418" stroke-width="1.5"/>
-  <rect x="13.5" y="127" width="9" height="30" rx="2" fill="#7a3f1d" stroke="#3d1f0c" stroke-width="1.5"/>
-  <circle cx="18" cy="161" r="6" fill="#f2c14e" stroke="#7a5418" stroke-width="1.5"/>
-</svg>`;
-
 function sparks(x, y, color = '#fff6c8', count = 10) {
   const flash = el('div', 'fx-impact', { left: `${x}px`, top: `${y}px` });
   done(flash.animate([
@@ -78,95 +69,75 @@ function sparks(x, y, color = '#fff6c8', count = 10) {
   }
 }
 
-// 剣を振りかぶって振り下ろす（手前の右下から、敵を斜めに斬る一人称視点）。
-// mirror=true で左下から斬る（X字の2撃目）
-async function swing({ mirror = false, color = '#9ee7ff', trail = true, fast = false } = {}) {
-  const c = enemyCenter();
-  const R = Math.max(130, c.size * 1.1);
-  const side = mirror ? -1 : 1;
-  const pivot = { x: c.x + side * R * 0.9, y: c.y + R * 1.1 };
-  const reach = Math.hypot(R * 0.9, R * 1.1);           // 柄から敵の中心までの距離
-  const scale = (reach * 1.12) / 160;                    // 剣先が敵を通りすぎる長さに
-  const center = -side * (Math.atan2(0.9, 1.1) * 180) / Math.PI; // 柄から見た敵の方向
-  const dur = fast ? 430 : 640;
-
-  const sword = el('div', 'fx-sword', { left: `${pivot.x - 18}px`, top: `${pivot.y - 160}px` });
-  sword.innerHTML = SWORD_SVG;
-  const k = (deg, sc = scale) => `rotate(${center + deg * side}deg) scale(${sc})`;
-  done(sword.animate([
-    { transform: k(44, scale * 0.8), opacity: 0, offset: 0 },
-    { transform: k(52), opacity: 1, offset: 0.14 },
-    { transform: k(64), opacity: 1, offset: 0.42, easing: 'cubic-bezier(.55,0,.85,.55)' },
-    { transform: k(-78), opacity: 1, offset: 0.64 },
-    { transform: k(-84), opacity: 1, offset: 0.8 },
-    { transform: k(-84), opacity: 0, offset: 1 },
-  ], { duration: dur, easing: 'linear' }), sword);
-
-  // 振りかぶった瞬間、剣先がきらりと光る
-  setTimeout(() => {
-    const tip = polar(pivot.x, pivot.y, 150 * scale, center + 64 * side);
-    const g = el('div', 'fx-glint', { left: `${tip.x}px`, top: `${tip.y}px` });
-    done(g.animate([
-      { transform: 'translate(-50%,-50%) scale(.2) rotate(0deg)', opacity: 0 },
-      { transform: 'translate(-50%,-50%) scale(1.2) rotate(45deg)', opacity: 1, offset: 0.4 },
-      { transform: 'translate(-50%,-50%) scale(.3) rotate(90deg)', opacity: 0 },
-    ], { duration: 280 }), g);
-  }, dur * 0.28);
-
-  // 振り下ろしに合わせて風切り音と斬撃の軌跡（剣先の通り道＝敵の中心を通る弧）
-  await sleep(dur * 0.42);
-  sfx.swing();
-  if (trail) {
-    const svg = fullSvg();
-    const a = polar(pivot.x, pivot.y, reach, center + 52 * side);
-    const b = polar(pivot.x, pivot.y, reach, center - 62 * side);
-    const d = `M${a.x} ${a.y} A${reach} ${reach} 0 0 ${mirror ? 1 : 0} ${b.x} ${b.y}`;
-    const glow = svgEl('path', { d, fill: 'none', stroke: color, 'stroke-width': 30, 'stroke-linecap': 'round', opacity: 0.55 }, svg);
-    const core = svgEl('path', { d, fill: 'none', stroke: '#ffffff', 'stroke-width': 11, 'stroke-linecap': 'round' }, svg);
-    for (const p of [glow, core]) {
-      const len = p.getTotalLength();
-      p.style.strokeDasharray = `${len}`;
-      p.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: dur * 0.22, easing: 'ease-out', fill: 'forwards' });
-    }
-    done(svg.animate([
-      { opacity: 1, transform: 'scale(1)', offset: 0 },
-      { opacity: 1, offset: 0.5 },
-      { opacity: 0 },
-    ], { duration: dur * 0.85 }), svg);
+// 剣の通り道に光る軌跡を描く（中心 (cx,cy)、半径 r、角度 a0→a1）
+function trailArc(cx, cy, r, a0, a1, color, dur) {
+  const svg = fullSvg();
+  const p0 = polar(cx, cy, r, a0);
+  const p1 = polar(cx, cy, r, a1);
+  const large = Math.abs(a1 - a0) > 180 ? 1 : 0;
+  const d = `M${p0.x} ${p0.y} A${r} ${r} 0 ${large} ${a1 > a0 ? 1 : 0} ${p1.x} ${p1.y}`;
+  const glow = svgEl('path', { d, fill: 'none', stroke: color, 'stroke-width': 26, 'stroke-linecap': 'round', opacity: 0.55 }, svg);
+  const core = svgEl('path', { d, fill: 'none', stroke: '#ffffff', 'stroke-width': 9, 'stroke-linecap': 'round' }, svg);
+  for (const p of [glow, core]) {
+    const len = p.getTotalLength();
+    p.style.strokeDasharray = `${len}`;
+    p.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: dur, easing: 'ease-in', fill: 'forwards' });
   }
-  await sleep(dur * 0.22);
+  done(svg.animate([{ opacity: 1, offset: 0 }, { opacity: 1, offset: 0.45 }, { opacity: 0 }], { duration: dur + 380 }), svg);
 }
 
-// プレイヤーの通常攻撃
+// 勇者が剣を振りかぶって (from) から振り下ろす (to)
+async function heroSwing({ from = -40, to = 150, color = '#9ee7ff', trail = true, fast = false } = {}) {
+  await hero.turnArm(from, fast ? 110 : 190, 'out');
+  const sh = hero.heroShoulder();
+  // 振りかぶった剣先がきらりと光る
+  const tip = polar(sh.x, sh.y, hero.SWORD_REACH, from);
+  const gl = el('div', 'fx-glint', { left: `${tip.x}px`, top: `${tip.y}px` });
+  done(gl.animate([
+    { transform: 'translate(-50%,-50%) scale(.2) rotate(0deg)', opacity: 0 },
+    { transform: 'translate(-50%,-50%) scale(1.2) rotate(45deg)', opacity: 1, offset: 0.4 },
+    { transform: 'translate(-50%,-50%) scale(.3) rotate(90deg)', opacity: 0 },
+  ], { duration: 260 }), gl);
+  await sleep(fast ? 50 : 110);
+  sfx.swing();
+  const dur = fast ? 90 : 120;
+  // 軌跡は勇者の前方（頭の上より前）だけに描く
+  const down = to > from;
+  const a0 = down ? Math.max(from + 12, 8) : Math.min(from - 12, 140);
+  const a1 = down ? to : Math.max(to, 8);
+  if (trail) trailArc(sh.x, sh.y, hero.SWORD_REACH * 0.9, a0, a1, color, dur);
+  await hero.turnArm(to, dur, 'in');
+}
+
+// プレイヤーの通常攻撃：敵のそばへ駆け寄って斬りつけ、元の位置へ戻る
 export async function slashFx({ crit = false, miss = false } = {}) {
-  if (reduceMotion()) return sleep(150);
-  lunge();
-  if (miss) {
-    await swing({ trail: false });
-    const icon = $('enemy-icon');
-    icon.animate([
-      { transform: 'translateX(0)' }, { transform: 'translateX(-46px)', offset: 0.4 }, { transform: 'translateX(0)' },
-    ], { duration: 380, easing: 'ease-out' });
-    return sleep(200);
-  }
   const c = enemyCenter();
-  if (crit) {
-    await swing({ color: '#ffd34d', fast: true });
+  if (reduceMotion() || !hero.heroReady()) {
+    if (!miss) sparks(c.x, c.y);
+    return sleep(150);
+  }
+  // 剣を前へ水平に出したとき、剣先が敵の中心を少し越える位置まで踏み込む
+  const target = { x: c.x - hero.SWORD_REACH * 0.75, y: c.y + c.size * 0.12 };
+  hero.turnArm(20, 200);
+  await hero.moveHeroTo(target.x, target.y, 230, 22);
+
+  if (miss) {
+    $('enemy-icon').animate([
+      { transform: 'translateX(0)' }, { transform: 'translateX(54px)', offset: 0.4 }, { transform: 'translateX(0)' },
+    ], { duration: 420, easing: 'ease-out' });
+    await heroSwing({ trail: false });
+  } else if (crit) {
+    await heroSwing({ color: '#ffd34d', fast: true });
     sparks(c.x, c.y, '#ffe27a', 8);
-    await swing({ mirror: true, color: '#ffd34d', fast: true });
+    await heroSwing({ from: 150, to: -30, color: '#ffd34d', fast: true }); // 切り返しの2撃目
     sparks(c.x, c.y, '#ffe27a', 14);
   } else {
-    await swing();
+    await heroSwing();
     sparks(c.x, c.y);
   }
-}
-
-function lunge() {
-  const card = document.querySelector('#battle-party .pcard');
-  if (!card) return;
-  card.animate([
-    { transform: 'translateY(0)' }, { transform: 'translateY(-14px) scale(1.04)', offset: 0.35 }, { transform: 'translateY(0)' },
-  ], { duration: 420, easing: 'ease-out' });
+  await sleep(150);
+  hero.heroRest();
+  await hero.moveHeroHome(260, 16);
 }
 
 function emojiBurst(ch, n, { radius = 50, size = 44, rise = 30, dur = 650, stagger = 60, x, y } = {}) {
@@ -241,6 +212,8 @@ async function meteoFx() {
 // じゅもん（こうげき）
 export async function spellFx(id) {
   if (reduceMotion()) return sleep(150);
+  await hero.heroCast();
+  setTimeout(hero.heroRest, 500);
   if (id === 'fire') return fireFx();
   if (id === 'thunder') return thunderFx();
   if (id === 'meteo') return meteoFx();
@@ -251,6 +224,7 @@ export async function spellFx(id) {
 export async function healFx(target = 'player') {
   if (reduceMotion()) return sleep(100);
   if (target === 'enemy') return emojiBurst('✨', 5, { radius: 50, size: 30, rise: 40 });
+  hero.heroCast().then(() => setTimeout(hero.heroRest, 300));
   const card = document.querySelector('#battle-party .pcard');
   if (!card) return null;
   const r = card.getBoundingClientRect();
@@ -290,3 +264,6 @@ export async function breathFx(name) {
     { transform: 'translateY(10%)', opacity: 0 },
   ], { duration: 700, easing: 'ease-out' }), w);
 }
+
+export const showHero = () => hero.showHero(layer());
+export const { removeHero, layoutHero, heroHurt, heroVictory, heroDown } = hero;

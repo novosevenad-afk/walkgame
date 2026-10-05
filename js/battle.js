@@ -3,7 +3,7 @@ import { player } from './player.js';
 import { ITEMS } from './data.js';
 import { rand, randInt, clamp, sleep, escapeHtml } from './util.js';
 import { sfx, stopBgm } from './sound.js';
-import { slashFx, spellFx, healFx, clawFx, breathFx } from './fx.js';
+import { slashFx, spellFx, healFx, clawFx, breathFx, showHero, removeHero, layoutHero, heroHurt, heroVictory, heroDown } from './fx.js';
 
 const $ = (id) => document.getElementById(id);
 let msgLines = [];
@@ -254,6 +254,8 @@ export async function startBattle(spawn, onUpdate) {
   $('battle-cmds').classList.add('hidden');
   $('battle-sub').classList.add('hidden');
   $('btn-run').disabled = true;
+  showHero();
+  window.addEventListener('resize', layoutHero);
   battle.onclick = () => { skipTyping = true; };
 
   sfx.encounter();
@@ -330,6 +332,7 @@ export async function startBattle(spawn, onUpdate) {
     const hitPlayer = async (dmg) => {
       if (guarding) dmg = Math.ceil(dmg / 2);
       sfx.damage();
+      heroHurt();
       anim(battle, 'shake', 300);
       if (navigator.vibrate) navigator.vibrate(50);
       s.hp = Math.max(0, s.hp - dmg);
@@ -407,6 +410,7 @@ export async function startBattle(spawn, onUpdate) {
   stopBgm(0.1);
   if (result === 'win') {
     icon.className = 'dead';
+    heroVictory();
     sfx.win();
     await say(`${e.name}を やっつけた！`, 500);
     s.gold += e.gold;
@@ -429,6 +433,7 @@ export async function startBattle(spawn, onUpdate) {
       for (const sp of up.newSpells) await say(`${sp.name}の じゅもんを おぼえた！`, 500);
     }
   } else if (result === 'lose') {
+    heroDown();
     sfx.lose();
     await say(`${s.name}は ちからつきた…`, 900);
     s.gold = Math.floor(s.gold / 2);
@@ -438,6 +443,8 @@ export async function startBattle(spawn, onUpdate) {
 
   await sleep(400);
   battle.onclick = null;
+  window.removeEventListener('resize', layoutHero);
+  removeHero();
   battle.classList.add('hidden');
   player.save();
   onUpdate && onUpdate();
