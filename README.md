@@ -3,6 +3,8 @@
 スマホのブラウザで遊べる、ドラクエウォーク風の **位置情報RPG** です。
 実際に歩いてモンスターに近づき、ターン制バトルで倒してレベルを上げます。
 
+**▶ あそぶ： https://novosevenad-afk.github.io/walkgame/**
+
 インストール不要・ビルド不要の静的サイト（HTML / CSS / JavaScript）で、PWA としてホーム画面にも追加できます。
 
 ## あそびかた
@@ -45,7 +47,7 @@ GPS が使えない場所や PC では **デモモード**（地図タップ・�
 1. このブランチを `main` にマージ
 2. GitHub のリポジトリ設定 → **Pages** → Source を **GitHub Actions** に変更
 3. `.github/workflows/pages.yml` が自動でデプロイします
-4. 表示された `https://<ユーザー名>.github.io/walkgame/` をスマホで開く
+4. `https://novosevenad-afk.github.io/walkgame/` をスマホで開く
 5. ブラウザのメニューから「ホーム画面に追加」するとアプリのように使えます
 
 ### ローカルで動かす
