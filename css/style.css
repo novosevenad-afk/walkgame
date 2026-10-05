@@ -211,26 +211,74 @@ button, input { font: inherit; color: inherit; }
 
 /* バトル */
 #battle {
+  --gold: #e9bf55;
+  --gold-hi: #fff0b0;
+  --gold-lo: #8a5a14;
+  --wood: #3a240e;
+  --wood-hi: #5c3a17;
   position: fixed; inset: 0; z-index: 1000;
   display: flex; flex-direction: column;
-  padding: calc(8px + var(--safe-t)) 8px calc(8px + var(--safe-b));
-  background: linear-gradient(#1e3a5f 0%, #3b6d4a 55%, #2d4a2a 100%);
+  padding: calc(6px + var(--safe-t)) 10px calc(10px + var(--safe-b));
+  overflow: hidden;
   animation: battle-in .5s ease-out;
 }
-#battle.boss { background: linear-gradient(#1a0022 0%, #4a0f4a 55%, #200020 100%); }
 @keyframes battle-in {
   0% { clip-path: circle(0% at 50% 50%); }
   100% { clip-path: circle(100% at 50% 50%); }
 }
-#battle-status { padding: 6px 10px; display: flex; justify-content: space-around; text-align: center; }
-#battle-status b { color: var(--accent); }
-#battle-status .low { color: var(--hp-low); }
-#battle-field { flex: 1; display: grid; place-items: center; position: relative; }
-#enemy-wrap { text-align: center; }
+
+/* 洞窟の闘技場：上は暗い岩壁、下は奥行きのある土の地面 */
+#battle-bg {
+  position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(ellipse 70% 22% at 50% 44%, rgba(255, 214, 150, .35), transparent 70%),
+    radial-gradient(ellipse 140% 70% at 50% 62%, #b47d40 0%, #8d5c2c 38%, #5a3818 62%, transparent 80%),
+    linear-gradient(#0d0805 0%, #24160a 22%, #4a2f15 38%, #6b4520 60%, #4a2e13 100%);
+}
+#battle-bg::before {
+  /* 地面の白線（パースをつけて奥へ） */
+  content: ""; position: absolute; left: -30%; right: -30%; top: 34%; height: 70%;
+  background:
+    radial-gradient(ellipse 46% 40% at 50% 30%, transparent 62%, rgba(255, 236, 200, .16) 63%, rgba(255, 236, 200, .16) 65%, transparent 66%),
+    repeating-linear-gradient(90deg, transparent 0 14%, rgba(255, 236, 200, .07) 14% 14.6%);
+  transform: perspective(420px) rotateX(58deg);
+  transform-origin: 50% 0;
+}
+#battle-bg::after {
+  /* 岩壁のごつごつ感と周辺減光 */
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(0,0,0,.2) 0 6%, transparent 7%),
+    radial-gradient(circle at 78% 12%, rgba(0,0,0,.18) 0 8%, transparent 9%),
+    radial-gradient(circle at 46% 26%, rgba(255,255,255,.04) 0 5%, transparent 6%),
+    radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, .55) 100%);
+}
+#battle.boss #battle-bg {
+  background:
+    radial-gradient(ellipse 70% 22% at 50% 44%, rgba(220, 120, 255, .3), transparent 70%),
+    radial-gradient(ellipse 140% 70% at 50% 62%, #6e3a7a 0%, #4a2258 38%, #2a1236 62%, transparent 80%),
+    linear-gradient(#07020c 0%, #170823 22%, #2d1240 38%, #3d1a50 60%, #22102e 100%);
+}
+
+#battle-crest { width: min(70%, 280px); margin: 4px auto 0; }
+#battle-crest svg { display: block; width: 100%; }
+
+#battle-field { flex: 1; display: grid; place-items: center; position: relative; min-height: 0; }
+#enemy-wrap { text-align: center; display: grid; justify-items: center; }
+#enemy-name {
+  font-size: 18px; letter-spacing: 1px;
+  text-shadow: -2px -2px 0 #1a0f05, 2px -2px 0 #1a0f05, -2px 2px 0 #1a0f05, 2px 2px 0 #1a0f05, 0 3px 6px rgba(0,0,0,.6);
+}
+#enemy-hp { width: 120px; height: 5px; margin: 4px 0 6px; border-color: #1a0f05; }
 #enemy-icon {
-  font-size: 120px; line-height: 1.1;
-  filter: drop-shadow(0 8px 6px rgba(0,0,0,.5));
+  font-size: min(36vw, 150px); line-height: 1.05;
+  filter: drop-shadow(0 6px 4px rgba(0,0,0,.45));
   animation: idle 2s ease-in-out infinite;
+  position: relative; z-index: 1;
+}
+.enemy-shadow {
+  width: min(34vw, 140px); height: 18px; margin-top: -14px;
+  background: radial-gradient(ellipse, rgba(0,0,0,.5), transparent 70%);
 }
 #enemy-icon.hit { animation: hit .35s; }
 #enemy-icon.dead { animation: dead .8s forwards; }
@@ -243,11 +291,10 @@ button, input { font: inherit; color: inherit; }
 }
 @keyframes dead { to { opacity: 0; transform: scale(.4) translateY(40px); filter: brightness(0) blur(4px); } }
 @keyframes act { 50% { transform: scale(1.25); } }
-#enemy-name { margin-top: 6px; font-size: 18px; text-shadow: 2px 2px 0 #000; }
-#enemy-hp { width: 160px; margin: 6px auto 0; height: 6px; }
 #dmg-pop {
-  position: absolute; top: 25%; left: 50%; transform: translateX(-50%);
-  font-size: 34px; color: #fff; text-shadow: 3px 3px 0 #000; pointer-events: none;
+  position: absolute; top: 18%; left: 50%; transform: translateX(-50%);
+  font-size: 38px; color: #fff; pointer-events: none;
+  text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
 }
 #dmg-pop.show { animation: dmg .8s ease-out forwards; }
 @keyframes dmg { from { opacity: 1; transform: translate(-50%, 10px); } to { opacity: 0; transform: translate(-50%, -40px); } }
@@ -257,8 +304,110 @@ button, input { font: inherit; color: inherit; }
   content: ""; position: fixed; inset: 0; background: #fff; animation: flash .25s forwards; pointer-events: none;
 }
 @keyframes flash { to { opacity: 0; } }
-#battle-bottom { display: flex; gap: 6px; min-height: 180px; }
-#battle-msg { flex: 1; padding: 10px 12px; line-height: 1.7; white-space: pre-wrap; font-size: 16px; }
-#battle-cmds, #battle-sub { width: 46%; padding: 4px 0; }
-#battle-sub { overflow-y: auto; max-height: 220px; }
-#battle-sub .cmd small { opacity: .7; float: right; }
+
+/* ステータスカード */
+#battle-party { display: flex; margin-bottom: 8px; }
+.pcard {
+  position: relative; width: 168px;
+  background: linear-gradient(#2c2f3e, #15161f);
+  border: 3px solid #f4f1ea; border-radius: 12px;
+  box-shadow: 0 0 0 2px rgba(0,0,0,.6), 0 6px 14px rgba(0,0,0,.45);
+  padding: 6px 8px 0;
+}
+.pcard-top { display: grid; grid-template-columns: 52px 1fr; gap: 6px; align-items: center; }
+.pcard canvas {
+  width: 52px; height: 52px; image-rendering: pixelated;
+  background: radial-gradient(circle at 50% 40%, #6aa0d8, #24406e);
+  border-radius: 8px; border: 2px solid #9fb6d8;
+}
+.pstat { display: grid; gap: 2px; }
+.pstat .num { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; line-height: 1; }
+.pstat .num b {
+  font-size: 22px; font-weight: 400; color: #fff;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+.pstat .num b.low { color: var(--hp-low); }
+.pstat .gauge { height: 6px; border-color: #000; }
+.plabel {
+  display: flex; justify-content: space-between; margin: 6px -8px 0; padding: 3px 10px;
+  border-top: 2px solid #f4f1ea; font-size: 13px; color: #ddd;
+}
+.pname { margin: 0 -8px; padding: 2px 10px 5px; text-align: center; font-size: 17px; border-top: 1px solid #555; }
+.pbadge {
+  position: absolute; top: -12px; right: -8px; font-size: 20px;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.6));
+}
+
+/* コマンドパネル */
+#battle-panel {
+  position: relative; height: 128px;
+  background: linear-gradient(rgba(58, 36, 14, .92), rgba(36, 22, 8, .94));
+  border: 3px solid #d9cfb8; border-radius: 16px;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.5), 0 6px 14px rgba(0,0,0,.5);
+  padding: 10px;
+}
+#battle-msg {
+  height: 100%; overflow: hidden;
+  padding: 2px 6px; line-height: 1.6; white-space: pre-wrap; font-size: 16px;
+  text-shadow: 1px 1px 0 #000;
+}
+#battle-cmds { position: absolute; inset: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.bcmd {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  background: linear-gradient(var(--wood-hi), var(--wood));
+  border: 3px solid var(--gold); border-radius: 10px;
+  box-shadow: inset 0 0 0 2px var(--gold-lo), inset 0 2px 0 3px rgba(255, 240, 176, .25), 0 3px 0 #1a0f05;
+  font-size: 15px; color: #fff; cursor: pointer; padding: 4px 0;
+  text-shadow: -1px -1px 0 #2a1605, 1px -1px 0 #2a1605, -1px 1px 0 #2a1605, 1px 1px 0 #2a1605;
+  transition: transform .06s;
+}
+.bcmd svg { width: 40px; height: 40px; filter: drop-shadow(0 2px 1px rgba(0,0,0,.5)); }
+.bcmd:active { transform: translateY(2px); box-shadow: inset 0 0 0 2px var(--gold-lo), 0 1px 0 #1a0f05; filter: brightness(1.2); }
+.bcmd:focus-visible, .bround:focus-visible, .bauto:focus-visible, .sub-item:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+#battle-sub {
+  position: absolute; inset: 8px; overflow-y: auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; align-content: start;
+}
+.sub-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 4px;
+  background: linear-gradient(var(--wood-hi), var(--wood));
+  border: 2px solid var(--gold); border-radius: 8px; padding: 7px 10px;
+  font-size: 15px; cursor: pointer; text-align: left;
+}
+.sub-item small { opacity: .75; font-size: 12px; }
+.sub-item:disabled { opacity: .4; }
+.sub-item.back { border-color: #d9cfb8; justify-content: center; }
+.sub-empty { grid-column: 1 / -1; padding: 6px; opacity: .8; }
+
+/* にげる・オートバトル */
+#battle-row { display: grid; grid-template-columns: 64px 1fr; gap: 10px; align-items: center; margin-top: 10px; }
+.bround {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, var(--wood-hi), var(--wood));
+  border: 3px solid var(--gold); box-shadow: inset 0 0 0 2px var(--gold-lo), 0 3px 0 #1a0f05;
+  display: grid; place-items: center; align-content: center; cursor: pointer; padding: 0;
+  font-size: 12px; text-shadow: 1px 1px 0 #000;
+}
+.bround svg { width: 34px; height: 34px; margin-bottom: -4px; }
+.bround:disabled { opacity: .5; }
+.bauto {
+  height: 52px; border-radius: 12px; cursor: pointer;
+  background: linear-gradient(#6b4a1c, #3f2a0c);
+  border: 3px solid var(--gold); box-shadow: inset 0 0 0 2px var(--gold-lo), 0 3px 0 #1a0f05;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-size: 17px; text-shadow: 1px 1px 0 #000;
+}
+.bauto svg { width: 40px; height: 20px; }
+.bauto[aria-pressed="true"] {
+  background: linear-gradient(#c98a1e, #7a4a0a);
+  animation: autoGlow 1.2s ease-in-out infinite;
+}
+@keyframes autoGlow { 50% { box-shadow: inset 0 0 0 2px var(--gold-lo), 0 0 14px var(--gold-hi); } }
+@media (max-width: 360px) {
+  .bcmd { font-size: 13px; }
+  .bcmd svg { width: 34px; height: 34px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #enemy-icon, .bauto[aria-pressed="true"] { animation: none; }
+}
