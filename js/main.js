@@ -4,7 +4,7 @@ import { ITEMS, WEAPONS, ARMORS, SHOP_ITEMS, MONSTERS, BOSS } from './data.js';
 import { monstersAround, spotsAround, areaKey, currentSlot, pruneDefeated, SPOT_TYPES } from './world.js';
 import { distance, offset, randInt, escapeHtml } from './util.js';
 import { startBattle } from './battle.js';
-import { sfx, unlockAudio, setSound, soundEnabled } from './sound.js';
+import { sfx, unlockAudio, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
 const RANGE = 60;                 // タップで反応する距離(m)
@@ -16,6 +16,7 @@ let pos = null;
 let lastWalkPos = null;
 let follow = true;
 let inBattle = false;
+let onField = false; // タイトル画面を抜けてフィールドにいるか
 let currentKey = '';
 let monsterLayer, spotLayer;
 let gpsWatchId = null;
@@ -136,6 +137,7 @@ function showBook() {
 function showSettings() {
   const demo = player.s.demo;
   openModal('せってい', `
+    <div class="list-row"><div>BGM<small>フィールドを あるくときの おんがく</small></div><button data-action="bgm">${bgmOn() ? 'ON' : 'OFF'}</button></div>
     <div class="list-row"><div>こうかおん</div><button data-action="sound">${soundEnabled() ? 'ON' : 'OFF'}</button></div>
     <div class="list-row"><div>いまのモード：${demo ? 'デモ' : 'GPS'}<small>${demo ? '地図タップ／十字キーで移動' : '実際に歩いて移動'}</small></div>
       <button data-action="mode">${demo ? 'GPSにする' : 'デモにする'}</button></div>
@@ -143,7 +145,12 @@ function showSettings() {
     <div class="list-row"><div>データを けす<small>さいしょから やりなおします</small></div><button data-action="reset">けす</button></div>
     <p style="font-size:12px;opacity:.7;margin-top:12px">モンスターは10分ごとに入れかわります。<br>地図データ © OpenStreetMap contributors</p>`,
   (action) => {
-    if (action === 'sound') {
+    if (action === 'bgm') {
+      setBgm(!bgmOn());
+      try { localStorage.setItem('walkquest-bgm', bgmOn() ? '1' : '0'); } catch (e) { /* ignore */ }
+      if (bgmOn()) startBgm();
+      showSettings();
+    } else if (action === 'sound') {
       setSound(!soundEnabled());
       try { localStorage.setItem('walkquest-sound', soundEnabled() ? '1' : '0'); } catch (e) { /* ignore */ }
       showSettings();
@@ -375,8 +382,10 @@ async function tryBattle(sp) {
   if (player.s.hp <= 0) player.fullHeal();
   inBattle = true;
   closeModal();
+  stopBgm(0.15);
   const result = await startBattle(sp, updateHud);
   inBattle = false;
+  if (document.visibilityState === 'visible') startBgm();
   if (result === 'win' || result === 'lose') refreshWorld(true);
 }
 
@@ -494,6 +503,9 @@ async function requestWakeLock() {
 }
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && wakeLock !== null) requestWakeLock();
+  // 画面を閉じている間は止め、フィールドに戻ったら再開
+  if (document.visibilityState === 'hidden') stopBgm(0.05);
+  else if (onField && !inBattle) { unlockAudio(); startBgm(); }
 });
 
 /* ---------- 起動 ---------- */
@@ -506,6 +518,8 @@ function boot(demo) {
   player.s.demo = demo;
   player.save();
   $('title').classList.add('hidden');
+  onField = true;
+  startBgm();
   updateHud();
   requestWakeLock();
   if (demo) startDemo();
@@ -520,6 +534,7 @@ function boot(demo) {
 
 function init() {
   try { setSound(localStorage.getItem('walkquest-sound') !== '0'); } catch (e) { /* ignore */ }
+  try { setBgm(localStorage.getItem('walkquest-bgm') !== '0'); } catch (e) { /* ignore */ }
   const hasSave = player.load();
   if (!hasSave) $('title-new').classList.remove('hidden');
   else $('btn-start').textContent = player.s.demo ? '▶ つづきから（デモ）' : '▶ つづきから';
