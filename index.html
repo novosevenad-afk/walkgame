@@ -70,24 +70,51 @@
 
   <!-- バトル画面 -->
   <div id="battle" class="hidden">
-    <div id="battle-status" class="win"></div>
+    <div id="battle-bg"></div>
+    <div id="battle-crest" aria-hidden="true">
+      <svg viewBox="0 0 240 24"><g fill="none" stroke="#e9bf55" stroke-width="2"><path d="M4 12h86M150 12h86"/><path d="M90 12l10-8 10 8-10 8z"/><path d="M130 12l10-8 10 8-10 8z"/></g><circle cx="120" cy="12" r="9" fill="#2a1a0a" stroke="#e9bf55" stroke-width="2"/><path d="M120 5v14M113 12h14" stroke="#7fd3ff" stroke-width="2"/></svg>
+    </div>
     <div id="battle-field">
       <div id="enemy-wrap">
-        <div id="enemy-icon"></div>
         <div id="enemy-name"></div>
         <div id="enemy-hp" class="gauge enemy"><i></i></div>
+        <div id="enemy-icon"></div>
+        <div class="enemy-shadow"></div>
       </div>
       <div id="dmg-pop"></div>
     </div>
-    <div id="battle-bottom">
-      <div id="battle-msg" class="win"></div>
-      <div id="battle-cmds" class="win hidden">
-        <button class="cmd" data-cmd="attack">たたかう</button>
-        <button class="cmd" data-cmd="spell">じゅもん</button>
-        <button class="cmd" data-cmd="item">どうぐ</button>
-        <button class="cmd" data-cmd="run">にげる</button>
+    <div id="battle-party"></div>
+    <div id="battle-panel">
+      <div id="battle-msg"></div>
+      <div id="battle-cmds" class="hidden">
+        <button class="bcmd" data-cmd="attack">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M38 6l4 4-22 22-4-4z" fill="#e8eef7" stroke="#59626e" stroke-width="2"/><path d="M14 26l8 8-3 3-8-8z" fill="#f2c14e" stroke="#7a5418" stroke-width="2"/><path d="M12 34l2 2-6 6-2-2z" fill="#8a4b22" stroke="#4a2810" stroke-width="2"/></svg>
+          <span>こうげき</span>
+        </button>
+        <button class="bcmd" data-cmd="spell">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 40L30 18" stroke="#8a4b22" stroke-width="5" stroke-linecap="round"/><path d="M33 5l3 8 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1z" fill="#ffd34d" stroke="#a8761c" stroke-width="2" stroke-linejoin="round"/><circle cx="14" cy="14" r="2" fill="#9ee7ff"/><circle cx="40" cy="36" r="2.5" fill="#9ee7ff"/></svg>
+          <span>じゅもん</span>
+        </button>
+        <button class="bcmd" data-cmd="item">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M17 14h14l-3 5c8 3 12 9 12 15 0 6-6 9-16 9S8 40 8 34c0-6 4-12 12-15z" fill="#d9c7a4" stroke="#6d5634" stroke-width="2"/><path d="M16 14c2-4 14-4 16 0" fill="none" stroke="#6d5634" stroke-width="3"/><path d="M24 26c-4 2-6 6-5 10 4 0 7-3 8-7z" fill="#4fbf5a" stroke="#226b2c" stroke-width="1.5"/></svg>
+          <span>どうぐ</span>
+        </button>
+        <button class="bcmd" data-cmd="guard">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4l16 6v12c0 11-7 18-16 22C15 40 8 33 8 22V10z" fill="#d8323a" stroke="#6e1218" stroke-width="2.5"/><path d="M24 9l11 4v9c0 8-5 13-11 16" fill="none" stroke="#ff8a8f" stroke-width="2"/></svg>
+          <span>ぼうぎょ</span>
+        </button>
       </div>
-      <div id="battle-sub" class="win hidden"></div>
+      <div id="battle-sub" class="hidden"></div>
+    </div>
+    <div id="battle-row">
+      <button id="btn-run" class="bround" data-cmd="run">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 30c6-2 10-8 18-8 6 0 10 3 14 6-5 0-8 2-10 5-4-3-10-3-22-3z" fill="#bfa2ff" stroke="#5a3f9e" stroke-width="2"/><path d="M6 36h12M10 41h10" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <span>にげる</span>
+      </button>
+      <button id="btn-auto" class="bauto" aria-pressed="false">
+        <svg viewBox="0 0 48 24" aria-hidden="true"><path d="M4 3l14 9-14 9zM22 3l14 9-14 9z" fill="#ffd34d" stroke="#a8761c" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <span>オートバトル</span>
+      </button>
     </div>
   </div>
 

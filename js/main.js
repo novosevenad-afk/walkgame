@@ -8,7 +8,7 @@ import { startTitleArt } from './title-art.js';
 import { sfx, unlockAudio, audioRunning, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
-const APP_VERSION = 'ver 1.4';  // 更新が届いているか確認できるようタイトルに表示
+const APP_VERSION = 'ver 1.5';  // 更新が届いているか確認できるようタイトルに表示
 const RANGE = 60;                 // タップで反応する距離(m)
 const DEMO_START = { lat: 35.681236, lng: 139.767125 }; // 東京駅
 const L = window.L;

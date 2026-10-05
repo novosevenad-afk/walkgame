@@ -7,6 +7,38 @@ import { sfx } from './sound.js';
 const $ = (id) => document.getElementById(id);
 let msgLines = [];
 let skipTyping = false;
+let autoMode = false;
+let guarding = false;
+
+// ステータスカードの顔（12x12 ドット）
+const PORTRAIT = [
+  '....hhhh....',
+  '..hhhhhhhh..',
+  '.hhhhyyhhhh.',
+  '.hhhhhhhhhh.',
+  '.hbbbbbbbbh.',
+  '.bbssssssbb.',
+  '.bskssssksb.',
+  '.bssssssssb.',
+  '..sssmmsss..',
+  '...ssssss...',
+  '..caaaaaac..',
+  '.ccayyyyacc.',
+];
+const PORTRAIT_COLORS = {
+  h: '#a9b6c8', y: '#f5c542', b: '#7a4520', s: '#f2c79b', k: '#1a1a2a', m: '#c46a5a', c: '#2f5fb3', a: '#d5dde8',
+};
+
+function drawPortrait(canvas) {
+  canvas.width = 12;
+  canvas.height = 12;
+  const g = canvas.getContext('2d');
+  PORTRAIT.forEach((row, y) => [...row].forEach((ch, x) => {
+    if (!PORTRAIT_COLORS[ch]) return;
+    g.fillStyle = PORTRAIT_COLORS[ch];
+    g.fillRect(x, y, 1, 1);
+  }));
+}
 
 function makeEnemy(mon, lv) {
   const base = mon.boss ? { ...mon, ...mon.scale(lv) } : { ...mon };
@@ -16,15 +48,39 @@ function makeEnemy(mon, lv) {
   return base;
 }
 
+function buildStatusCard() {
+  $('battle-party').innerHTML = `
+    <div class="pcard">
+      <span class="pbadge" hidden>🛡️</span>
+      <div class="pcard-top">
+        <canvas aria-hidden="true"></canvas>
+        <div class="pstat">
+          <div class="num"><span>HP</span><b data-k="hp"></b></div>
+          <div class="gauge"><i data-k="hpbar"></i></div>
+          <div class="num"><span>MP</span><b data-k="mp"></b></div>
+          <div class="gauge mp"><i data-k="mpbar"></i></div>
+        </div>
+      </div>
+      <div class="plabel"><span>ゆうしゃ</span><span data-k="lv"></span></div>
+      <div class="pname">${escapeHtml(player.s.name)}</div>
+    </div>`;
+  drawPortrait($('battle-party').querySelector('canvas'));
+}
+
 function renderStatus() {
   const st = player.stats;
   const s = player.s;
-  const low = s.hp <= st.maxHp / 4 ? 'low' : '';
-  $('battle-status').innerHTML = `
-    <div>${escapeHtml(s.name)}</div>
-    <div class="${low}">HP <b class="${low}">${s.hp}</b></div>
-    <div>MP <b>${s.mp}</b></div>
-    <div>Lv <b>${s.lv}</b></div>`;
+  const card = $('battle-party');
+  const q = (k) => card.querySelector(`[data-k="${k}"]`);
+  const low = s.hp <= st.maxHp / 4;
+  q('hp').textContent = s.hp;
+  q('hp').classList.toggle('low', low);
+  q('mp').textContent = s.mp;
+  q('lv').textContent = `Lv${s.lv}`;
+  q('hpbar').style.width = `${(s.hp / st.maxHp) * 100}%`;
+  q('hpbar').classList.toggle('low', low);
+  q('mpbar').style.width = `${(s.mp / Math.max(1, st.maxMp)) * 100}%`;
+  card.querySelector('.pbadge').hidden = !guarding;
 }
 
 function renderEnemyHp(e) {
@@ -67,48 +123,92 @@ function anim(el, cls, ms) {
   setTimeout(() => el.classList.remove(cls), ms);
 }
 
+// オートバトルの行動：HPが少なければ回復、それ以外はこうげき
+function autoPick() {
+  const st = player.stats;
+  if (player.s.hp < st.maxHp * 0.35) {
+    const heal = player.spells.filter((sp) => sp.type === 'heal' && sp.mp <= player.s.mp).pop();
+    if (heal) return { type: 'spell', spell: heal };
+    const item = ['potion', 'herb'].find((id) => player.s.items[id]);
+    if (item) return { type: 'item', id: item };
+  }
+  return { type: 'attack' };
+}
+
+function setAuto(on) {
+  autoMode = on;
+  const b = $('btn-auto');
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  b.querySelector('span').textContent = on ? 'オートちゅう（タップでとめる）' : 'オートバトル';
+}
+
 // コマンド選択を待つ
 function chooseCommand() {
   return new Promise((resolve) => {
+    const msg = $('battle-msg');
     const cmds = $('battle-cmds');
     const sub = $('battle-sub');
-    cmds.classList.remove('hidden');
-    sub.classList.add('hidden');
+    const run = $('btn-run');
+    const auto = $('btn-auto');
+    let autoTimer = null;
+
+    const showCmds = () => {
+      msg.hidden = true;
+      cmds.classList.remove('hidden');
+      sub.classList.add('hidden');
+    };
 
     const done = (v) => {
+      clearTimeout(autoTimer);
       cmds.classList.add('hidden');
       sub.classList.add('hidden');
+      msg.hidden = false;
       cmds.onclick = null;
       sub.onclick = null;
+      run.onclick = null;
+      run.disabled = true;
+      auto.onclick = toggleAuto;
       resolve(v);
     };
 
+    const scheduleAuto = () => {
+      clearTimeout(autoTimer);
+      if (autoMode) autoTimer = setTimeout(() => done(autoPick()), 350);
+    };
+
+    function toggleAuto() {
+      sfx.cursor();
+      setAuto(!autoMode);
+      if (cmds.onclick) scheduleAuto();
+    }
+
     const showSub = (entries) => {
+      clearTimeout(autoTimer);
       cmds.classList.add('hidden');
       sub.classList.remove('hidden');
-      sub.innerHTML = entries.map((e, i) =>
-        `<button class="cmd" data-i="${i}" ${e.disabled ? 'disabled' : ''}>${escapeHtml(e.label)}<small>${escapeHtml(e.note || '')}</small></button>`
-      ).join('') + '<button class="cmd" data-i="back">もどる</button>';
+      sub.innerHTML = (entries.length ? '' : '<div class="sub-empty">つかえるものが ない。</div>') + entries.map((e, i) =>
+        `<button class="sub-item" data-i="${i}" ${e.disabled ? 'disabled' : ''}><span>${escapeHtml(e.label)}</span><small>${escapeHtml(e.note || '')}</small></button>`
+      ).join('') + '<button class="sub-item back" data-i="back">もどる</button>';
       sub.onclick = (ev) => {
         const b = ev.target.closest('button');
         if (!b || b.disabled) return;
         sfx.cursor();
-        if (b.dataset.i === 'back') {
-          sub.classList.add('hidden');
-          cmds.classList.remove('hidden');
-          return;
-        }
+        if (b.dataset.i === 'back') { showCmds(); return; }
         done(entries[Number(b.dataset.i)].value);
       };
     };
 
+    showCmds();
+    run.disabled = false;
+    run.onclick = () => { sfx.cursor(); done({ type: 'run' }); };
+    auto.onclick = toggleAuto;
     cmds.onclick = (ev) => {
       const b = ev.target.closest('button');
       if (!b) return;
       sfx.cursor();
       const c = b.dataset.cmd;
       if (c === 'attack') done({ type: 'attack' });
-      else if (c === 'run') done({ type: 'run' });
+      else if (c === 'guard') done({ type: 'guard' });
       else if (c === 'spell') {
         showSub(player.spells.map((sp) => ({
           label: sp.name, note: `MP${sp.mp}`, disabled: player.s.mp < sp.mp,
@@ -122,6 +222,7 @@ function chooseCommand() {
         })));
       }
     };
+    scheduleAuto();
   });
 }
 
@@ -142,11 +243,16 @@ export async function startBattle(spawn, onUpdate) {
   icon.className = '';
   icon.textContent = e.icon;
   $('enemy-name').textContent = e.name;
+  guarding = false;
+  setAuto(false);
+  buildStatusCard();
   renderEnemyHp(e);
   renderStatus();
   clearMsg();
+  $('battle-msg').hidden = false;
   $('battle-cmds').classList.add('hidden');
   $('battle-sub').classList.add('hidden');
+  $('btn-run').disabled = true;
   battle.onclick = () => { skipTyping = true; };
 
   sfx.encounter();
@@ -157,10 +263,15 @@ export async function startBattle(spawn, onUpdate) {
   while (!result) {
     const cmd = await chooseCommand();
     const st = player.stats;
-    const playerFirst = st.agi * rand(0.5, 1) >= e.agi * rand(0.5, 1);
+    // ぼうぎょは必ず先に行動する
+    const playerFirst = cmd.type === 'guard' || st.agi * rand(0.5, 1) >= e.agi * rand(0.5, 1);
 
     const playerAct = async () => {
-      if (cmd.type === 'attack') {
+      if (cmd.type === 'guard') {
+        guarding = true;
+        renderStatus();
+        await say(`${s.name}は みを まもっている。`);
+      } else if (cmd.type === 'attack') {
         await say(`${s.name}の こうげき！`, 200);
         if (Math.random() < 1 / 32 + clamp((e.agi - st.agi) / 400, 0, 0.1)) {
           sfx.miss();
@@ -213,6 +324,7 @@ export async function startBattle(spawn, onUpdate) {
     };
 
     const hitPlayer = async (dmg) => {
+      if (guarding) dmg = Math.ceil(dmg / 2);
       sfx.damage();
       anim(battle, 'shake', 300);
       if (navigator.vibrate) navigator.vibrate(50);
@@ -277,6 +389,8 @@ export async function startBattle(spawn, onUpdate) {
       if (s.hp > 0) await playerAct();
     }
 
+    guarding = false;
+    renderStatus();
     if (e.hp <= 0) result = 'win';
     else if (s.hp <= 0) result = 'lose';
     onUpdate && onUpdate();
