@@ -6,12 +6,22 @@ export function setSound(on) { enabled = on; }
 export function soundEnabled() { return enabled; }
 
 export function unlockAudio() {
+  // iPhone: マナーモード（消音スイッチ）でも音が出るようにする（Safari 16.4以降）
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* ignore */ }
   if (!ctx) {
     const AC = window.AudioContext || window.webkitAudioContext;
-    if (AC) ctx = new AC();
+    if (!AC) return;
+    ctx = new AC();
   }
-  if (ctx && ctx.state === 'suspended') ctx.resume();
+  if (ctx.state !== 'running') ctx.resume().catch(() => {});
+  // iPhone: タップ中に無音を1回鳴らすとオーディオが確実に使えるようになる
+  const src = ctx.createBufferSource();
+  src.buffer = ctx.createBuffer(1, 1, 22050);
+  src.connect(ctx.destination);
+  src.start(0);
 }
+
+export function audioRunning() { return !!ctx && ctx.state === 'running'; }
 
 function tone(freq, start, dur, type = 'square', vol = 0.08) {
   if (!ctx || !enabled) return;

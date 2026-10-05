@@ -4,7 +4,7 @@ import { ITEMS, WEAPONS, ARMORS, SHOP_ITEMS, MONSTERS, BOSS } from './data.js';
 import { monstersAround, spotsAround, areaKey, currentSlot, pruneDefeated, SPOT_TYPES } from './world.js';
 import { distance, offset, randInt, escapeHtml } from './util.js';
 import { startBattle } from './battle.js';
-import { sfx, unlockAudio, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
+import { sfx, unlockAudio, audioRunning, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
 const RANGE = 60;                 // タップで反応する距離(m)
@@ -507,6 +507,13 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') stopBgm(0.05);
   else if (onField && !inBattle) { unlockAudio(); startBgm(); }
 });
+
+// iPhone はアプリ切替などで音が止まると、画面に触れるまで再開できないため、タッチのたびに確認する
+document.addEventListener('pointerdown', () => {
+  if (!onField) return;
+  if (!audioRunning()) unlockAudio();
+  if (!inBattle) startBgm();
+}, { passive: true });
 
 /* ---------- 起動 ---------- */
 function boot(demo) {
