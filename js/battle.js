@@ -3,6 +3,7 @@ import { player } from './player.js';
 import { ITEMS } from './data.js';
 import { rand, randInt, clamp, sleep, escapeHtml } from './util.js';
 import { sfx, stopBgm } from './sound.js';
+import { slashFx, spellFx, healFx, clawFx, breathFx } from './fx.js';
 
 const $ = (id) => document.getElementById(id);
 let msgLines = [];
@@ -274,6 +275,7 @@ export async function startBattle(spawn, onUpdate) {
       } else if (cmd.type === 'attack') {
         await say(`${s.name}の こうげき！`, 200);
         if (Math.random() < 1 / 32 + clamp((e.agi - st.agi) / 400, 0, 0.1)) {
+          await slashFx({ miss: true });
           sfx.miss();
           await say(`ミス！ ${e.name}は ひらりと かわした！`);
           return;
@@ -281,11 +283,13 @@ export async function startBattle(spawn, onUpdate) {
         let dmg;
         if (Math.random() < 1 / 24) {
           dmg = Math.round(st.atk * rand(0.95, 1.05));
+          await say('かいしんの いちげき！', 150);
+          await slashFx({ crit: true });
           battle.classList.add('flash');
           setTimeout(() => battle.classList.remove('flash'), 300);
-          await say('かいしんの いちげき！', 200);
         } else {
           dmg = physicalDamage(st.atk, e.def);
+          await slashFx();
         }
         await hitEnemy(dmg);
       } else if (cmd.type === 'spell') {
@@ -297,18 +301,18 @@ export async function startBattle(spawn, onUpdate) {
         if (sp.type === 'heal') {
           const r = player.heal(randInt(sp.min, sp.max));
           sfx.heal();
+          healFx();
           renderStatus();
           await say(`HPが ${r.hp} かいふくした！`);
         } else {
           const dmg = Math.round(rand(sp.min, sp.max) + s.lv * (sp.lvBonus || 0));
-          battle.classList.add('flash');
-          setTimeout(() => battle.classList.remove('flash'), 300);
+          await spellFx(sp.id);
           await hitEnemy(dmg);
         }
       } else if (cmd.type === 'item') {
         await say(`${s.name}は ${ITEMS[cmd.id].name}を つかった！`, 250);
         const r = player.useItem(cmd.id);
-        if (r && r.ok) sfx.heal();
+        if (r && r.ok) { sfx.heal(); healFx(); }
         renderStatus();
         await say(r ? r.msg : 'しかし なにも おこらなかった。');
       }
@@ -339,6 +343,7 @@ export async function startBattle(spawn, onUpdate) {
         await say(`${s.name}は ひらりと みをかわした！`);
         return;
       }
+      await clawFx();
       await hitPlayer(physicalDamage(e.atk, st.def));
     };
 
@@ -350,12 +355,14 @@ export async function startBattle(spawn, onUpdate) {
           const h = Math.min(e.maxHp - e.hp, sk.power);
           e.hp += h;
           renderEnemyHp(e);
+          healFx('enemy');
           await say(`${e.name}は ${sk.name}`, 250);
           await say(`${e.name}の キズが ${h} かいふくした！`);
           return;
         }
         if (sk.type === 'breath') {
           await say(`${e.name}は ${sk.name}！`, 250);
+          await breathFx(sk.name);
           await hitPlayer(Math.round(sk.power * rand(0.85, 1.15)));
           return;
         }

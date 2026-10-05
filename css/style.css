@@ -411,3 +411,23 @@ button, input { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   #enemy-icon, .bauto[aria-pressed="true"] { animation: none; }
 }
+
+/* バトル演出 */
+#battle-fx { position: absolute; inset: 0; pointer-events: none; z-index: 5; overflow: hidden; }
+/* 剣などの演出より手前に操作パネルを出す */
+#battle-party, #battle-panel, #battle-row { position: relative; z-index: 6; }
+.fx-svg { position: absolute; left: 0; top: 0; overflow: visible; filter: drop-shadow(0 0 6px rgba(255,255,255,.7)); }
+.fx-sword { position: absolute; width: 36px; height: 170px; transform-origin: 18px 160px; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+.fx-sword svg { display: block; }
+.fx-glint {
+  position: absolute; width: 34px; height: 34px;
+  background:
+    linear-gradient(90deg, transparent 45%, #fff 45% 55%, transparent 55%),
+    linear-gradient(0deg, transparent 45%, #fff 45% 55%, transparent 55%);
+  filter: drop-shadow(0 0 6px #fff);
+}
+.fx-ring { position: absolute; width: 110px; height: 110px; border: 5px solid; border-radius: 50%; }
+.fx-impact { position: absolute; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, #fff 0 25%, rgba(255,255,255,.6) 40%, transparent 70%); }
+.fx-spark { position: absolute; width: 5px; height: 28px; border-radius: 2px; box-shadow: 0 0 6px currentColor; }
+.fx-emoji { position: absolute; line-height: 1; filter: drop-shadow(0 0 8px rgba(255,200,80,.7)); }
+.fx-tint { position: absolute; inset: 0; }

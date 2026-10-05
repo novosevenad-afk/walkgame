@@ -51,7 +51,32 @@ function noise(start, dur, vol = 0.12) {
   src.start(t);
 }
 
+// フィルターを通したノイズ（風切り音・雷・炎など）
+function sweepNoise(start, dur, vol, type, f0, f1, q = 1) {
+  if (!ctx || !enabled) return;
+  const t = ctx.currentTime + start;
+  const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource();
+  const f = ctx.createBiquadFilter();
+  const g = ctx.createGain();
+  src.buffer = buf;
+  f.type = type;
+  f.Q.value = q;
+  f.frequency.setValueAtTime(f0, t);
+  f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(f).connect(g).connect(ctx.destination);
+  src.start(t);
+}
+
 export const sfx = {
+  swing() { sweepNoise(0, 0.18, 0.22, 'bandpass', 500, 3200, 2); },
+  fire() { sweepNoise(0, 0.5, 0.18, 'bandpass', 1400, 500, 0.8); sweepNoise(0.1, 0.4, 0.1, 'lowpass', 900, 200); },
+  thunder() { sweepNoise(0, 0.6, 0.3, 'lowpass', 3000, 120); tone(70, 0, 0.4, 'sawtooth', 0.08); },
+  claw() { [0, 0.05, 0.1].forEach((s) => sweepNoise(s, 0.09, 0.14, 'highpass', 2500, 6000)); },
   cursor() { tone(880, 0, 0.05); },
   encounter() { [523, 659, 784, 1046].forEach((f, i) => tone(f, i * 0.06, 0.08)); },
   hit() { noise(0, 0.12); tone(180, 0, 0.1, 'sawtooth'); },
