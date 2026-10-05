@@ -417,8 +417,8 @@ button, input { font: inherit; color: inherit; }
 /* 剣などの演出より手前に操作パネルを出す */
 #battle-party, #battle-panel, #battle-row { position: relative; z-index: 6; }
 .fx-svg { position: absolute; left: 0; top: 0; overflow: visible; filter: drop-shadow(0 0 6px rgba(255,255,255,.7)); }
-.fx-sword { position: absolute; width: 36px; height: 170px; transform-origin: 18px 160px; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
-.fx-sword svg { display: block; }
+.hero { position: absolute; left: 0; top: 0; pointer-events: none; }
+.hero canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; filter: drop-shadow(0 4px 3px rgba(0,0,0,.45)); }
 .fx-glint {
   position: absolute; width: 34px; height: 34px;
   background:
