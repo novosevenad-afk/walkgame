@@ -8,7 +8,7 @@ import { startTitleArt } from './title-art.js';
 import { sfx, unlockAudio, audioRunning, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
-const APP_VERSION = 'ver 1.5';  // 更新が届いているか確認できるようタイトルに表示
+const APP_VERSION = 'ver 1.6';  // 更新が届いているか確認できるようタイトルに表示
 const RANGE = 60;                 // タップで反応する距離(m)
 const DEMO_START = { lat: 35.681236, lng: 139.767125 }; // 東京駅
 const L = window.L;
@@ -139,7 +139,7 @@ function showBook() {
 function showSettings() {
   const demo = player.s.demo;
   openModal('せってい', `
-    <div class="list-row"><div>BGM<small>フィールドを あるくときの おんがく</small></div><button data-action="bgm">${bgmOn() ? 'ON' : 'OFF'}</button></div>
+    <div class="list-row"><div>BGM<small>フィールドと せんとうの おんがく</small></div><button data-action="bgm">${bgmOn() ? 'ON' : 'OFF'}</button></div>
     <div class="list-row"><div>こうかおん</div><button data-action="sound">${soundEnabled() ? 'ON' : 'OFF'}</button></div>
     <div class="list-row"><div>いまのモード：${demo ? 'デモ' : 'GPS'}<small>${demo ? '地図タップ／十字キーで移動' : '実際に歩いて移動'}</small></div>
       <button data-action="mode">${demo ? 'GPSにする' : 'デモにする'}</button></div>
@@ -384,10 +384,10 @@ async function tryBattle(sp) {
   if (player.s.hp <= 0) player.fullHeal();
   inBattle = true;
   closeModal();
-  stopBgm(0.15);
+  startBgm('battle');
   const result = await startBattle(sp, updateHud);
   inBattle = false;
-  if (document.visibilityState === 'visible') startBgm();
+  if (document.visibilityState === 'visible') startBgm('field');
   if (result === 'win' || result === 'lose') refreshWorld(true);
 }
 

@@ -66,21 +66,40 @@ export const sfx = {
   lose() { [392, 349, 311, 262].forEach((f, i) => tone(f, i * 0.25, 0.3, 'triangle')); },
 };
 
-/* ---------- フィールドBGM ----------
+/* ---------- BGM ----------
  * オリジナル曲を WebAudio で演奏する。1文字＝8分音符。
- * 「-」は前の音をのばす、「.」は休符。小節区切りの「|」は読み飛ばす。 */
-const BGM_TEMPO = 132;
-const BGM_SCORE = {
-  melody: `
-    G4 - C5 - E5 - D5 C5 | D5 - - C5 A4 - - . | B4 - D5 - G5 - F5 E5 | E5 - - - - - . . |
-    A4 - C5 - E5 - D5 C5 | F5 - E5 - D5 - C5 - | D5 - E5 F5 G5 - B4 - | C5 - - - - - . . |
-    A5 - - G5 F5 - E5 - | G5 - - E5 C5 - - . | F5 - - E5 D5 - C5 - | B4 - G4 - B4 - D5 - |
-    C5 - E5 - A5 - G5 - | F5 - A5 - C6 - A5 - | G5 - F5 - D5 - B4 - | C5 - G4 - C5 - - . |`,
-  bass: `
-    C3 - G3 - C3 - G3 - | F2 - C3 - F2 - C3 - | G2 - D3 - G2 - D3 - | C3 - G3 - C3 - G3 - |
-    A2 - E3 - A2 - E3 - | F2 - C3 - F2 - C3 - | D3 - A3 - G2 - D3 - | C3 - G3 - C3 - G3 - |
-    F2 - C3 - F2 - C3 - | C3 - G3 - C3 - G3 - | D3 - A3 - D3 - A3 - | G2 - D3 - G2 - D3 - |
-    A2 - E3 - A2 - E3 - | F2 - C3 - F2 - C3 - | G2 - D3 - G2 - D3 - | C3 - G3 - C3 - . . |`,
+ * 「-」は前の音をのばす、「.」は休符。小節区切りの「|」は読み飛ばす。
+ * drums は1小節ぶんのパターンをくり返す（x=バスドラム s=スネア h=ハイハット）。 */
+const TRACKS = {
+  // フィールド：Cメジャーののどかな行進
+  field: {
+    tempo: 132,
+    melody: `
+      G4 - C5 - E5 - D5 C5 | D5 - - C5 A4 - - . | B4 - D5 - G5 - F5 E5 | E5 - - - - - . . |
+      A4 - C5 - E5 - D5 C5 | F5 - E5 - D5 - C5 - | D5 - E5 F5 G5 - B4 - | C5 - - - - - . . |
+      A5 - - G5 F5 - E5 - | G5 - - E5 C5 - - . | F5 - - E5 D5 - C5 - | B4 - G4 - B4 - D5 - |
+      C5 - E5 - A5 - G5 - | F5 - A5 - C6 - A5 - | G5 - F5 - D5 - B4 - | C5 - G4 - C5 - - . |`,
+    bass: `
+      C3 - G3 - C3 - G3 - | F2 - C3 - F2 - C3 - | G2 - D3 - G2 - D3 - | C3 - G3 - C3 - G3 - |
+      A2 - E3 - A2 - E3 - | F2 - C3 - F2 - C3 - | D3 - A3 - G2 - D3 - | C3 - G3 - C3 - G3 - |
+      F2 - C3 - F2 - C3 - | C3 - G3 - C3 - G3 - | D3 - A3 - D3 - A3 - | G2 - D3 - G2 - D3 - |
+      A2 - E3 - A2 - E3 - | F2 - C3 - F2 - C3 - | G2 - D3 - G2 - D3 - | C3 - G3 - C3 - . . |`,
+  },
+  // せんとう：Aマイナーの速いテンポ、きざむベースとドラム
+  battle: {
+    tempo: 168,
+    melody: `
+      A4 - C5 - E5 - A5 - | G#5 - A5 - E5 - C5 - | F5 - E5 - D5 - C5 - | B4 - G#4 - E4 - - . |
+      A4 A4 C5 A4 E5 - D5 C5 | D5 - F5 - A5 - G5 F5 | E5 - G#5 - B5 - A5 G#5 | A5 - - - E5 - . . |
+      F5 - A5 - C6 - A5 - | G5 - B5 - D6 - B5 - | E5 - G5 - B5 - A5 G5 | A5 - E5 - C5 - A4 - |
+      D5 D5 F5 D5 A5 - F5 D5 | E5 E5 G#5 E5 B5 - G#5 E5 | F5 - E5 - D5 - C5 - | B4 - C5 - D5 - E5 - |`,
+    bass: `
+      A2 A3 A2 A3 A2 A3 A2 A3 | A2 A3 A2 A3 A2 A3 A2 A3 | F2 F3 F2 F3 F2 F3 F2 F3 | E2 E3 E2 E3 E2 E3 E2 E3 |
+      A2 A3 A2 A3 A2 A3 A2 A3 | D2 D3 D2 D3 D2 D3 D2 D3 | E2 E3 E2 E3 E2 E3 E2 E3 | A2 A3 A2 A3 A2 A3 A2 A3 |
+      F2 F3 F2 F3 F2 F3 F2 F3 | G2 G3 G2 G3 G2 G3 G2 G3 | E2 E3 E2 E3 E2 E3 E2 E3 | A2 A3 A2 A3 A2 A3 A2 A3 |
+      D2 D3 D2 D3 D2 D3 D2 D3 | E2 E3 E2 E3 E2 E3 E2 E3 | F2 F3 F2 F3 F2 F3 F2 F3 | E2 E3 E2 E3 E2 E3 E2 E3 |`,
+    drums: 'x h s h x x s h',
+  },
 };
 
 const NOTE_INDEX = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11 };
@@ -102,19 +121,32 @@ function parseTrack(str) {
   return { events, length: tokens.length };
 }
 
-// ステップ番号 -> そのステップで鳴らす音
-const BGM_LENGTH = parseTrack(BGM_SCORE.melody).length;
-const BGM_STEPS = Array.from({ length: BGM_LENGTH }, () => []);
-for (const [part, type, vol] of [['melody', 'square', 0.035], ['bass', 'triangle', 0.09]]) {
-  for (const ev of parseTrack(BGM_SCORE[part]).events) BGM_STEPS[ev.step].push({ ...ev, type, vol });
+// 曲を「ステップ番号 -> そのステップで鳴らす音」の表にする
+function compile(track) {
+  const length = parseTrack(track.melody).length;
+  const steps = Array.from({ length }, () => []);
+  for (const [part, type, vol] of [['melody', 'square', 0.035], ['bass', 'triangle', 0.09]]) {
+    for (const ev of parseTrack(track[part]).events) steps[ev.step].push({ ...ev, type, vol });
+  }
+  if (track.drums) {
+    const pat = track.drums.trim().split(/\s+/);
+    for (let i = 0; i < length; i++) {
+      const d = pat[i % pat.length];
+      if (d !== '.') steps[i].push({ drum: d });
+    }
+  }
+  return { steps, length, stepSec: 60 / track.tempo / 2 };
 }
-const STEP_SEC = 60 / BGM_TEMPO / 2;
+const SONGS = Object.fromEntries(Object.entries(TRACKS).map(([k, t]) => [k, compile(t)]));
 
 let bgmEnabled = true;
 let bgmTimer = null;
 let bgmGain = null;
+let bgmSong = null;
+let bgmName = null;
 let bgmStep = 0;
 let bgmNext = 0;
+let noiseBuf = null;
 
 export function bgmOn() { return bgmEnabled; }
 export function setBgm(on) {
@@ -122,8 +154,8 @@ export function setBgm(on) {
   if (!on) stopBgm();
 }
 
-function bgmNote(ev, t) {
-  const dur = ev.len * STEP_SEC;
+function bgmNote(ev, t, stepSec) {
+  const dur = ev.len * stepSec;
   const o = ctx.createOscillator();
   const g = ctx.createGain();
   o.type = ev.type;
@@ -138,20 +170,64 @@ function bgmNote(ev, t) {
   o.stop(t + dur);
 }
 
+function bgmDrum(kind, t) {
+  if (kind === 'x') {
+    // バスドラム：低い音を一気に下げる
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(140, t);
+    o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+    g.gain.setValueAtTime(0.22, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
+    o.connect(g).connect(bgmGain);
+    o.start(t);
+    o.stop(t + 0.16);
+    return;
+  }
+  // スネア・ハイハット：ノイズを短く鳴らす
+  if (!noiseBuf) {
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const src = ctx.createBufferSource();
+  const f = ctx.createBiquadFilter();
+  const g = ctx.createGain();
+  const snare = kind === 's';
+  src.buffer = noiseBuf;
+  f.type = 'highpass';
+  f.frequency.value = snare ? 1200 : 7000;
+  g.gain.setValueAtTime(snare ? 0.07 : 0.025, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + (snare ? 0.12 : 0.04));
+  src.connect(f).connect(g).connect(bgmGain);
+  src.start(t);
+  src.stop(t + 0.15);
+}
+
 // 少し先までの音をまとめて予約する（タイマーのズレで音が乱れないように）
 function scheduleBgm() {
+  const song = bgmSong;
   while (bgmNext < ctx.currentTime + 0.3) {
-    for (const ev of BGM_STEPS[bgmStep]) bgmNote(ev, bgmNext);
-    bgmStep = (bgmStep + 1) % BGM_LENGTH;
-    bgmNext += STEP_SEC;
+    for (const ev of song.steps[bgmStep]) {
+      if (ev.drum) bgmDrum(ev.drum, bgmNext);
+      else bgmNote(ev, bgmNext, song.stepSec);
+    }
+    bgmStep = (bgmStep + 1) % song.length;
+    bgmNext += song.stepSec;
   }
 }
 
-export function startBgm() {
-  if (!ctx || !bgmEnabled || bgmTimer) return;
+// name: 'field'（フィールド）または 'battle'（せんとう）。ちがう曲が流れていたら切り替える
+export function startBgm(name = 'field') {
+  if (!ctx || !bgmEnabled || !SONGS[name]) return;
+  if (bgmTimer && bgmName === name) return;
+  if (bgmTimer) stopBgm(0.12);
+  bgmName = name;
+  bgmSong = SONGS[name];
   bgmGain = ctx.createGain();
   bgmGain.gain.setValueAtTime(0.0001, ctx.currentTime);
-  bgmGain.gain.exponentialRampToValueAtTime(1, ctx.currentTime + 0.8);
+  bgmGain.gain.exponentialRampToValueAtTime(1, ctx.currentTime + (name === 'battle' ? 0.15 : 0.8));
   bgmGain.connect(ctx.destination);
   bgmStep = 0;
   bgmNext = ctx.currentTime + 0.1;
@@ -163,6 +239,7 @@ export function stopBgm(fade = 0.25) {
   if (!bgmTimer) return;
   clearInterval(bgmTimer);
   bgmTimer = null;
+  bgmName = null;
   const g = bgmGain;
   bgmGain = null;
   const t = ctx.currentTime;
