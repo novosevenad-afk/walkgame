@@ -201,7 +201,7 @@ button, input { font: inherit; color: inherit; }
 .title-sub { margin: 0; text-shadow: 2px 2px 0 #000; }
 .title-box .cmd { text-align: center; padding-left: 12px; text-shadow: 2px 2px 0 #000; }
 .title-box .cmd.big { font-size: 20px; color: var(--accent); }
-.title-note { font-size: 11px; opacity: .7; margin: 16px 0 0; line-height: 1.6; text-shadow: 1px 1px 0 #000; }
+.title-note { font-size: 11px; opacity: .7; margin: 12px 0 0; line-height: 1.6; text-shadow: 1px 1px 0 #000; }
 #title-new { margin-bottom: 16px; }
 #title-new label { display: block; margin-bottom: 6px; }
 #name-input {
