@@ -8,6 +8,7 @@ import { startTitleArt } from './title-art.js';
 import { sfx, unlockAudio, audioRunning, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
+const APP_VERSION = 'ver 1.4';  // 更新が届いているか確認できるようタイトルに表示
 const RANGE = 60;                 // タップで反応する距離(m)
 const DEMO_START = { lat: 35.681236, lng: 139.767125 }; // 東京駅
 const L = window.L;
@@ -558,8 +559,18 @@ function init() {
 
   updateHud();
 
+  $('app-version').textContent = APP_VERSION;
+
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    // 新しい版が入ったら、タイトル画面にいるうちに1回だけ読み直して最新を表示する
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloaded || onField) return;
+      reloaded = true;
+      location.reload();
+    });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => reg.update()).catch(() => {});
   }
 }
 

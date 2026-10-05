@@ -1,5 +1,5 @@
 // オフラインでも起動できるようにアプリ本体をキャッシュする
-const CACHE = 'walkquest-v4';
+const CACHE = 'walkquest-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -30,12 +30,13 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// 自分のファイルはネットワーク優先（更新をすぐ反映）、失敗したらキャッシュ
+// 自分のファイルはネットワーク優先（更新をすぐ反映）、失敗したらキャッシュ。
+// GitHub Pages はブラウザに最大10分ファイルを保持させるため、no-cache で毎回サーバーに確認する
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(e.request, copy));
