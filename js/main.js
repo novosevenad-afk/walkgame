@@ -4,6 +4,7 @@ import { ITEMS, WEAPONS, ARMORS, SHOP_ITEMS, MONSTERS, BOSS } from './data.js';
 import { monstersAround, spotsAround, areaKey, currentSlot, pruneDefeated, SPOT_TYPES } from './world.js';
 import { distance, offset, randInt, escapeHtml } from './util.js';
 import { startBattle } from './battle.js';
+import { startTitleArt } from './title-art.js';
 import { sfx, unlockAudio, audioRunning, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
@@ -516,7 +517,10 @@ document.addEventListener('pointerdown', () => {
 }, { passive: true });
 
 /* ---------- 起動 ---------- */
+let stopTitleArt = null;
+
 function boot(demo) {
+  if (stopTitleArt) stopTitleArt();
   unlockAudio();
   const nameInput = $('name-input');
   if (!$('title-new').classList.contains('hidden')) {
@@ -540,6 +544,7 @@ function boot(demo) {
 }
 
 function init() {
+  try { stopTitleArt = startTitleArt($('title-art')); } catch (e) { console.warn('title art failed', e); }
   try { setSound(localStorage.getItem('walkquest-sound') !== '0'); } catch (e) { /* ignore */ }
   try { setBgm(localStorage.getItem('walkquest-bgm') !== '0'); } catch (e) { /* ignore */ }
   const hasSave = player.load();

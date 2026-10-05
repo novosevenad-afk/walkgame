@@ -174,18 +174,34 @@ button, input { font: inherit; color: inherit; }
 .section-title { color: var(--accent); margin: 10px 0 4px; }
 
 /* タイトル */
-#title { background: radial-gradient(ellipse at 50% 30%, #2a2a6a, #08081a 70%); }
-.title-box { text-align: center; width: 100%; max-width: 360px; }
+#title {
+  background: #08081a;
+  padding: calc(24px + var(--safe-t)) 16px calc(20px + var(--safe-b));
+  overflow: hidden;
+}
+#title-art {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; image-rendering: pixelated; image-rendering: crisp-edges;
+}
+/* 文字を読みやすくするため上下だけ暗くする */
+.title-shade {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(rgba(5, 4, 20, .5) 0%, rgba(5, 4, 20, 0) 24%, rgba(5, 4, 20, 0) 66%, rgba(5, 4, 20, .85) 82%);
+}
+.title-box {
+  position: relative; text-align: center; width: 100%; max-width: 360px; height: 100%;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
 .title-box h1 {
   font-size: 46px; line-height: 1.15; margin: 0 0 8px;
   color: var(--accent);
   text-shadow: 3px 3px 0 #b45309, 6px 6px 0 #000;
   letter-spacing: 4px;
 }
-.title-sub { margin: 0 0 28px; opacity: .85; }
-.title-box .cmd { text-align: center; padding-left: 12px; }
+.title-sub { margin: 0; text-shadow: 2px 2px 0 #000; }
+.title-box .cmd { text-align: center; padding-left: 12px; text-shadow: 2px 2px 0 #000; }
 .title-box .cmd.big { font-size: 20px; color: var(--accent); }
-.title-note { font-size: 11px; opacity: .6; margin-top: 24px; line-height: 1.6; }
+.title-note { font-size: 11px; opacity: .7; margin: 16px 0 0; line-height: 1.6; text-shadow: 1px 1px 0 #000; }
 #title-new { margin-bottom: 16px; }
 #title-new label { display: block; margin-bottom: 6px; }
 #name-input {
