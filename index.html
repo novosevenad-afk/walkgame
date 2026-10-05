@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#101028">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>ウォーククエスト</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lib/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- 上部ステータス -->
+  <div id="hud" class="win">
+    <div class="hud-row">
+      <span id="hud-name">ゆうしゃ</span>
+      <span>Lv <b id="hud-lv">1</b></span>
+      <span><b id="hud-gold">0</b> G</span>
+    </div>
+    <div class="hud-row bars">
+      <div class="bar"><label>HP</label><div class="gauge"><i id="hud-hpbar"></i></div><span id="hud-hp">30/30</span></div>
+      <div class="bar"><label>MP</label><div class="gauge mp"><i id="hud-mpbar"></i></div><span id="hud-mp">10/10</span></div>
+    </div>
+    <div class="hud-row sub">
+      <span id="hud-gps">GPS: さがしています…</span>
+      <span>あるいた <b id="hud-walk">0</b> m</span>
+    </div>
+  </div>
+
+  <!-- 地図ボタン -->
+  <div id="map-buttons">
+    <button id="btn-center" class="round" aria-label="現在地へ">◎</button>
+  </div>
+
+  <!-- デモ用十字キー -->
+  <div id="dpad" class="hidden">
+    <button data-dir="n">▲</button>
+    <button data-dir="w">◀</button>
+    <button data-dir="e">▶</button>
+    <button data-dir="s">▼</button>
+  </div>
+
+  <!-- 下部メニュー -->
+  <nav id="nav" class="win">
+    <button data-open="status">つよさ</button>
+    <button data-open="items">どうぐ</button>
+    <button data-open="book">ずかん</button>
+    <button data-open="settings">せってい</button>
+  </nav>
+
+  <div id="toast" class="win hidden"></div>
+
+  <!-- 汎用モーダル -->
+  <div id="modal" class="overlay hidden">
+    <div class="win modal-body">
+      <div id="modal-title"></div>
+      <div id="modal-content"></div>
+      <button id="modal-close" class="cmd">とじる</button>
+    </div>
+  </div>
+
+  <!-- バトル画面 -->
+  <div id="battle" class="hidden">
+    <div id="battle-status" class="win"></div>
+    <div id="battle-field">
+      <div id="enemy-wrap">
+        <div id="enemy-icon"></div>
+        <div id="enemy-name"></div>
+        <div id="enemy-hp" class="gauge enemy"><i></i></div>
+      </div>
+      <div id="dmg-pop"></div>
+    </div>
+    <div id="battle-bottom">
+      <div id="battle-msg" class="win"></div>
+      <div id="battle-cmds" class="win hidden">
+        <button class="cmd" data-cmd="attack">たたかう</button>
+        <button class="cmd" data-cmd="spell">じゅもん</button>
+        <button class="cmd" data-cmd="item">どうぐ</button>
+        <button class="cmd" data-cmd="run">にげる</button>
+      </div>
+      <div id="battle-sub" class="win hidden"></div>
+    </div>
+  </div>
+
+  <!-- タイトル -->
+  <div id="title" class="overlay">
+    <div class="title-box">
+      <h1>ウォーク<br>クエスト</h1>
+      <p class="title-sub">あるいて たたかう いちじょうほうRPG</p>
+      <div id="title-new" class="hidden">
+        <label>なまえを きめてください</label>
+        <input id="name-input" maxlength="6" value="ゆうしゃ">
+      </div>
+      <button id="btn-start" class="cmd big">▶ ぼうけんに でる</button>
+      <button id="btn-demo" class="cmd">デモモードで あそぶ</button>
+      <p class="title-note">※ 位置情報を使います。歩きスマホは危険です。<br>まわりに気をつけて あそびましょう。</p>
+    </div>
+  </div>
+
+  <script src="lib/leaflet/leaflet.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
