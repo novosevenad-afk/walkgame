@@ -233,7 +233,7 @@ function physicalDamage(atk, def) {
   return Math.max(1, Math.round(base * rand(0.85, 1.15)));
 }
 
-export async function startBattle(spawn, onUpdate) {
+export async function startBattle(spawn, onUpdate, { auto = false } = {}) {
   const s = player.s;
   const e = makeEnemy(spawn.mon, s.lv);
   const battle = $('battle');
@@ -245,7 +245,7 @@ export async function startBattle(spawn, onUpdate) {
   icon.textContent = e.icon;
   $('enemy-name').textContent = e.name;
   guarding = false;
-  setAuto(false);
+  setAuto(auto);
   buildStatusCard();
   renderEnemyHp(e);
   renderStatus();
