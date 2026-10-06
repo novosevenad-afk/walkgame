@@ -5,7 +5,7 @@ const SAVE_KEY = 'walkquest-save-v1';
 
 function defaultState() {
   return {
-    name: 'ゆうしゃ',
+    name: 'アイアン',
     lv: 1,
     exp: 0,
     hp: 30,
@@ -123,21 +123,21 @@ export const player = {
     const st = this.stats;
     let msg;
     if (it.type === 'hp') {
-      if (this.s.hp >= st.maxHp) return { ok: false, msg: 'HPは まんたんだ。' };
+      if (this.s.hp >= st.maxHp) return { ok: false, msg: 'HPは 満タンだ。' };
       const r = this.heal(it.power);
-      msg = `HPが ${r.hp} かいふくした！`;
+      msg = `HPが ${r.hp} 回復した！`;
     } else if (it.type === 'mp') {
-      if (this.s.mp >= st.maxMp) return { ok: false, msg: 'MPは まんたんだ。' };
+      if (this.s.mp >= st.maxMp) return { ok: false, msg: 'ENは 満タンだ。' };
       const r = this.heal(0, it.power);
-      msg = `MPが ${r.mp} かいふくした！`;
+      msg = `ENが ${r.mp} 回復した！`;
     } else if (it.type === 'seed') {
       if (it.stat === 'hp') {
         this.s.bonus.hp += 5;
         this.s.hp += 5;
-        msg = 'さいだいHPが 5 あがった！';
+        msg = '最大HPが 5 上がった！';
       } else {
         this.s.bonus[it.stat] += 1;
-        msg = `${it.stat === 'atk' ? 'こうげき' : 'しゅび'}が 1 あがった！`;
+        msg = `${it.stat === 'atk' ? '攻撃力' : '防御力'}が 1 上がった！`;
       }
     }
     this.s.items[id]--;

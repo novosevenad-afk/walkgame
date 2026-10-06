@@ -29,11 +29,11 @@ function buildStatusCard() {
         <div class="pstat">
           <div class="num"><span>HP</span><b data-k="hp"></b></div>
           <div class="gauge"><i data-k="hpbar"></i></div>
-          <div class="num"><span>MP</span><b data-k="mp"></b></div>
+          <div class="num"><span>EN</span><b data-k="mp"></b></div>
           <div class="gauge mp"><i data-k="mpbar"></i></div>
         </div>
       </div>
-      <div class="plabel"><span>ゆうしゃ</span><span data-k="lv"></span></div>
+      <div class="plabel"><span>ウォーカー</span><span data-k="lv"></span></div>
       <div class="pname">${escapeHtml(player.s.name)}</div>
     </div>`;
 }
@@ -110,7 +110,7 @@ function setAuto(on) {
   autoMode = on;
   const b = $('btn-auto');
   b.setAttribute('aria-pressed', on ? 'true' : 'false');
-  b.querySelector('span').textContent = on ? 'オートちゅう（タップでとめる）' : 'オートバトル';
+  b.querySelector('span').textContent = on ? 'オート中（タップで停止）' : 'オートバトル';
 }
 
 // コマンド選択を待つ
@@ -157,7 +157,7 @@ function chooseCommand() {
       clearTimeout(autoTimer);
       cmds.classList.add('hidden');
       sub.classList.remove('hidden');
-      sub.innerHTML = (entries.length ? '' : '<div class="sub-empty">つかえるものが ない。</div>') + entries.map((e, i) =>
+      sub.innerHTML = (entries.length ? '' : '<div class="sub-empty">使えるものが ない。</div>') + entries.map((e, i) =>
         `<button class="sub-item" data-i="${i}" ${e.disabled ? 'disabled' : ''}><span>${escapeHtml(e.label)}</span><small>${escapeHtml(e.note || '')}</small></button>`
       ).join('') + '<button class="sub-item back" data-i="back">もどる</button>';
       sub.onclick = (ev) => {
@@ -182,7 +182,7 @@ function chooseCommand() {
       else if (c === 'guard') done({ type: 'guard' });
       else if (c === 'spell') {
         showSub(player.spells.map((sp) => ({
-          label: sp.name, note: `MP${sp.mp}`, disabled: player.s.mp < sp.mp,
+          label: sp.name, note: `EN${sp.mp}`, disabled: player.s.mp < sp.mp,
           value: { type: 'spell', spell: sp },
         })));
       } else if (c === 'item') {
@@ -211,7 +211,7 @@ export async function startBattle(spawn, onUpdate, { auto = false } = {}) {
 
   battle.classList.toggle('boss', !!e.boss);
   battle.classList.remove('hidden');
-  icon.className = '';
+  icon.className = e.metal ? 'metal' : '';
   icon.textContent = e.icon;
   $('enemy-name').textContent = e.name;
   guarding = false;
@@ -230,7 +230,7 @@ export async function startBattle(spawn, onUpdate, { auto = false } = {}) {
 
   sfx.encounter();
   if (navigator.vibrate) navigator.vibrate(e.boss ? [100, 60, 200] : 80);
-  await say(e.boss ? `${e.name}が すがたを あらわした！` : `${e.name}が あらわれた！`, 600);
+  await say(e.boss ? `警告！ ${e.name}が 出現した！` : `${e.name}が あらわれた！`, 600);
 
   let result = null;
   while (!result) {
@@ -243,19 +243,19 @@ export async function startBattle(spawn, onUpdate, { auto = false } = {}) {
       if (cmd.type === 'guard') {
         guarding = true;
         renderStatus();
-        await say(`${s.name}は みを まもっている。`);
+        await say(`${s.name}は シールドを 展開した。`);
       } else if (cmd.type === 'attack') {
-        await say(`${s.name}の こうげき！`, 200);
+        await say(`${s.name}の 攻撃！`, 200);
         if (Math.random() < 1 / 32 + clamp((e.agi - st.agi) / 400, 0, 0.1)) {
           await slashFx({ miss: true });
           sfx.miss();
-          await say(`ミス！ ${e.name}は ひらりと かわした！`);
+          await say(`ミス！ ${e.name}は 攻撃を かわした！`);
           return;
         }
         let dmg;
         if (Math.random() < 1 / 24) {
           dmg = Math.round(st.atk * rand(0.95, 1.05));
-          await say('かいしんの いちげき！', 150);
+          await say('クリティカルヒット！', 150);
           await slashFx({ crit: true });
           battle.classList.add('flash');
           setTimeout(() => battle.classList.remove('flash'), 300);
@@ -269,24 +269,24 @@ export async function startBattle(spawn, onUpdate, { auto = false } = {}) {
         s.mp -= sp.mp;
         renderStatus();
         sfx.spell();
-        await say(`${s.name}は ${sp.name}を となえた！`, 250);
+        await say(`${s.name}は ${sp.name}を 発動した！`, 250);
         if (sp.type === 'heal') {
           const r = player.heal(randInt(sp.min, sp.max));
           sfx.heal();
           healFx();
           renderStatus();
-          await say(`HPが ${r.hp} かいふくした！`);
+          await say(`HPが ${r.hp} 回復した！`);
         } else {
           const dmg = Math.round(rand(sp.min, sp.max) + s.lv * (sp.lvBonus || 0));
           await spellFx(sp.id);
           await hitEnemy(dmg);
         }
       } else if (cmd.type === 'item') {
-        await say(`${s.name}は ${ITEMS[cmd.id].name}を つかった！`, 250);
+        await say(`${s.name}は ${ITEMS[cmd.id].name}を 使った！`, 250);
         const r = player.useItem(cmd.id);
         if (r && r.ok) { sfx.heal(); healFx(); }
         renderStatus();
-        await say(r ? r.msg : 'しかし なにも おこらなかった。');
+        await say(r ? r.msg : 'しかし 何も おこらなかった。');
       }
     };
 
@@ -307,13 +307,13 @@ export async function startBattle(spawn, onUpdate, { auto = false } = {}) {
       if (navigator.vibrate) navigator.vibrate(50);
       s.hp = Math.max(0, s.hp - dmg);
       renderStatus();
-      await say(`${s.name}は ${dmg}の ダメージを うけた！`);
+      await say(`${s.name}は ${dmg}の ダメージを 受けた！`);
     };
 
     const enemyAttackOnce = async () => {
       if (Math.random() < 1 / 40) {
         sfx.miss();
-        await say(`${s.name}は ひらりと みをかわした！`);
+        await say(`${s.name}は 攻撃を 回避した！`);
         return;
       }
       await clawFx();
@@ -330,7 +330,7 @@ export async function startBattle(spawn, onUpdate, { auto = false } = {}) {
           renderEnemyHp(e);
           healFx('enemy');
           await say(`${e.name}は ${sk.name}`, 250);
-          await say(`${e.name}の キズが ${h} かいふくした！`);
+          await say(`${e.name}の 装甲が ${h} 回復した！`);
           return;
         }
         if (sk.type === 'breath') {
@@ -346,20 +346,20 @@ export async function startBattle(spawn, onUpdate, { auto = false } = {}) {
           return;
         }
       }
-      await say(`${e.name}の こうげき！`, 200);
+      await say(`${e.name}の 攻撃！`, 200);
       await enemyAttackOnce();
     };
 
     if (cmd.type === 'run') {
       const chance = e.boss ? 0.25 : clamp(0.55 + (st.agi - e.agi) / 50, 0.2, 0.95);
-      await say(`${s.name}は にげだした！`, 250);
+      await say(`${s.name}は 撤退を はかった！`, 250);
       if (Math.random() < chance) {
         sfx.run();
-        await say('うまく にげきれた！');
+        await say('うまく 離脱できた！');
         result = 'run';
         break;
       }
-      await say('しかし まわりこまれてしまった！');
+      await say('しかし 回りこまれてしまった！');
       await enemyAct();
     } else if (playerFirst) {
       await playerAct();
@@ -379,36 +379,36 @@ export async function startBattle(spawn, onUpdate, { auto = false } = {}) {
   // 勝ち・負け・にげるの瞬間はせんとう曲を止めて、ファンファーレを聞かせる
   stopBgm(0.1);
   if (result === 'win') {
-    icon.className = 'dead';
+    icon.className = e.metal ? 'metal dead' : 'dead';
     heroVictory();
     sfx.win();
-    await say(`${e.name}を やっつけた！`, 500);
+    await say(`${e.name}を 撃破した！`, 500);
     s.gold += e.gold;
     s.wins++;
     s.book[e.id] = (s.book[e.id] || 0) + 1;
     s.defeated[spawn.id] = true;
-    await say(`${e.exp}ポイントの けいけんちを かくとく！`, 300);
-    await say(`${e.gold}ゴールドを てにいれた！`, 300);
+    await say(`${e.exp}ポイントの 経験値を 獲得！`, 300);
+    await say(`${e.gold}クレジットを 手に入れた！`, 300);
     const drop = rollDrop(e);
     if (drop) {
       player.addItem(drop);
-      await say(`${e.name}は ${ITEMS[drop].name}を おとしていった！`, 300);
+      await say(`${e.name}の 残骸から ${ITEMS[drop].name}を 回収した！`, 300);
     }
     const ups = player.gainExp(e.exp);
     for (const up of ups) {
       sfx.levelup();
       renderStatus();
-      await say(`${s.name}は レベル${up.lv}に あがった！`, 700);
-      await say(`さいだいHP+${up.hp} MP+${up.mp} こうげき+${up.atk} しゅび+${up.def}`, 500);
-      for (const sp of up.newSpells) await say(`${sp.name}の じゅもんを おぼえた！`, 500);
+      await say(`${s.name}は レベル${up.lv}に 上がった！`, 700);
+      await say(`最大HP+${up.hp} EN+${up.mp} 攻撃+${up.atk} 防御+${up.def}`, 500);
+      for (const sp of up.newSpells) await say(`スキル「${sp.name}」を 習得した！`, 500);
     }
   } else if (result === 'lose') {
     heroDown();
     sfx.lose();
-    await say(`${s.name}は ちからつきた…`, 900);
+    await say(`${s.name}は 大破した…`, 900);
     s.gold = Math.floor(s.gold / 2);
     player.fullHeal();
-    await say('きょうかいで いきかえった。 しょじきんが はんぶんに なった…', 900);
+    await say('司令部に 回収され 修理された。 クレジットが 半分に なった…', 900);
   }
 
   await sleep(400);

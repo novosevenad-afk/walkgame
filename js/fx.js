@@ -87,7 +87,7 @@ function trailArc(cx, cy, r, a0, a1, color, dur) {
 }
 
 // 勇者が剣を振りかぶって (from) から振り下ろす (to)
-async function heroSwing({ from = -40, to = 150, color = '#9ee7ff', trail = true, fast = false } = {}) {
+async function heroSwing({ from = -40, to = 150, color = '#ff9a4a', trail = true, fast = false } = {}) {
   await hero.turnArm(from, fast ? 110 : 190, 'out');
   const sh = hero.heroShoulder();
   // 振りかぶった剣先がきらりと光る
@@ -255,7 +255,7 @@ export async function clawFx() {
 // 敵のブレス（画面全体に色の波）
 export async function breathFx(name) {
   if (reduceMotion()) return sleep(100);
-  const color = /つめた|こおり/.test(name) ? '120,220,255' : /やみ/.test(name) ? '160,50,210' : '255,120,30';
+  const color = /EMP|ノイズ/.test(name) ? '120,220,255' : /レーザー/.test(name) ? '255,60,90' : '255,120,30';
   sfx.fire();
   const w = el('div', 'fx-tint', { background: `linear-gradient(rgba(${color},.0), rgba(${color},.75) 40%, rgba(${color},.35))` });
   await done(w.animate([
