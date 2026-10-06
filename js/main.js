@@ -7,7 +7,7 @@ import { startBattle } from './battle.js';
 import { sfx, unlockAudio, audioRunning, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
-const APP_VERSION = 'ver 2.2';  // 更新が届いているか確認できるようタイトルに表示
+const APP_VERSION = 'ver 3.0';  // 更新が届いているか確認できるようタイトルに表示
 const RANGE = 60;                 // タップで反応する距離(m)
 const DEMO_START = { lat: 35.681236, lng: 139.767125 }; // 東京駅
 const L = window.L;
@@ -80,42 +80,42 @@ function showStatus() {
   const s = player.s;
   const st = player.stats;
   const next = player.nextExp;
-  const spells = player.spells.map((sp) => `${sp.name}(MP${sp.mp})`).join('、') || 'なし';
-  openModal(`${s.name}の つよさ`, `
+  const spells = player.spells.map((sp) => `${sp.name}(EN${sp.mp})`).join('、') || 'なし';
+  openModal(`${s.name} 機体ステータス`, `
     <div class="kv">
       <span>レベル</span><span>${s.lv}</span>
       <span>HP</span><span>${s.hp} / ${st.maxHp}</span>
-      <span>MP</span><span>${s.mp} / ${st.maxMp}</span>
-      <span>こうげき</span><span>${st.atk}</span>
-      <span>しゅび</span><span>${st.def}</span>
-      <span>すばやさ</span><span>${st.agi}</span>
-      <span>けいけんち</span><span>${s.exp}</span>
-      <span>つぎのレベルまで</span><span>${next === null ? '-' : next}</span>
-      <span>ゴールド</span><span>${s.gold} G</span>
-      <span>たおした かず</span><span>${s.wins}</span>
-      <span>あるいた きょり</span><span>${(s.walked / 1000).toFixed(2)} km</span>
+      <span>EN</span><span>${s.mp} / ${st.maxMp}</span>
+      <span>攻撃力</span><span>${st.atk}</span>
+      <span>防御力</span><span>${st.def}</span>
+      <span>機動力</span><span>${st.agi}</span>
+      <span>経験値</span><span>${s.exp}</span>
+      <span>次のレベルまで</span><span>${next === null ? '-' : next}</span>
+      <span>クレジット</span><span>${s.gold} C</span>
+      <span>撃破数</span><span>${s.wins}</span>
+      <span>移動距離</span><span>${(s.walked / 1000).toFixed(2)} km</span>
     </div>
-    <div class="section-title">そうび</div>
+    <div class="section-title">装備</div>
     <div class="kv">
-      <span>ぶき</span><span>${player.weapon.name} (+${player.weapon.atk})</span>
-      <span>よろい</span><span>${player.armor.name} (+${player.armor.def})</span>
+      <span>武器</span><span>${player.weapon.name} (+${player.weapon.atk})</span>
+      <span>装甲</span><span>${player.armor.name} (+${player.armor.def})</span>
     </div>
-    <div class="section-title">じゅもん</div>
+    <div class="section-title">スキル</div>
     <div>${spells}</div>`);
 }
 
 function itemsHtml() {
   const ids = Object.keys(player.s.items).filter((id) => ITEMS[id]);
-  if (!ids.length) return '<div>なにも もっていない。</div>';
+  if (!ids.length) return '<div>何も 持っていない。</div>';
   return ids.map((id) => `
     <div class="list-row">
       <div>${ITEMS[id].name} ×${player.s.items[id]}<small>${ITEMS[id].desc}</small></div>
-      <button data-action="use" data-arg="${id}">つかう</button>
+      <button data-action="use" data-arg="${id}">使う</button>
     </div>`).join('');
 }
 
 function showItems() {
-  openModal('どうぐ', itemsHtml(), (action, id) => {
+  openModal('アイテム', itemsHtml(), (action, id) => {
     if (action !== 'use') return;
     const r = player.useItem(id);
     if (r) {
@@ -131,22 +131,22 @@ function showItems() {
 function showBook() {
   const all = [...MONSTERS, BOSS];
   const found = all.filter((m) => player.s.book[m.id]).length;
-  openModal(`モンスターずかん ${found}/${all.length}`, `<div class="book-grid">${all.map((m) => {
+  openModal(`エネミー図鑑 ${found}/${all.length}`, `<div class="book-grid">${all.map((m) => {
     const n = player.s.book[m.id] || 0;
-    return `<div class="book-cell ${n ? '' : 'unknown'}"><span class="ic">${m.icon}</span>${n ? escapeHtml(m.name) : '？？？'}<br>${n ? `${n}ひき` : ''}</div>`;
+    return `<div class="book-cell ${n ? '' : 'unknown'}"><span class="ic ${m.metal && n ? 'metal' : ''}">${m.icon}</span>${n ? escapeHtml(m.name) : '？？？'}<br>${n ? `${n}機` : ''}</div>`;
   }).join('')}</div>`);
 }
 
 function showSettings() {
   const demo = player.s.demo;
-  openModal('せってい', `
-    <div class="list-row"><div>BGM<small>フィールドと せんとうの おんがく</small></div><button data-action="bgm">${bgmOn() ? 'ON' : 'OFF'}</button></div>
-    <div class="list-row"><div>こうかおん</div><button data-action="sound">${soundEnabled() ? 'ON' : 'OFF'}</button></div>
-    <div class="list-row"><div>いまのモード：${demo ? 'デモ' : 'GPS'}<small>${demo ? '地図タップ／十字キーで移動' : '実際に歩いて移動'}</small></div>
+  openModal('設定', `
+    <div class="list-row"><div>BGM<small>フィールドと 戦闘の 音楽</small></div><button data-action="bgm">${bgmOn() ? 'ON' : 'OFF'}</button></div>
+    <div class="list-row"><div>効果音</div><button data-action="sound">${soundEnabled() ? 'ON' : 'OFF'}</button></div>
+    <div class="list-row"><div>今のモード：${demo ? 'デモ' : 'GPS'}<small>${demo ? '地図タップ／十字キーで移動' : '実際に歩いて移動'}</small></div>
       <button data-action="mode">${demo ? 'GPSにする' : 'デモにする'}</button></div>
-    <div class="list-row"><div>なまえを かえる</div><button data-action="rename">かえる</button></div>
-    <div class="list-row"><div>データを けす<small>さいしょから やりなおします</small></div><button data-action="reset">けす</button></div>
-    <p style="font-size:12px;opacity:.7;margin-top:12px">モンスターは10分ごとに入れかわります。<br>地図データ © OpenStreetMap contributors</p>`,
+    <div class="list-row"><div>パイロット名を 変える</div><button data-action="rename">変える</button></div>
+    <div class="list-row"><div>データを 消す<small>最初から やり直します</small></div><button data-action="reset">消す</button></div>
+    <p style="font-size:12px;opacity:.7;margin-top:12px">敵マシンは10分ごとに入れかわります。<br>地図データ © OpenStreetMap contributors</p>`,
   (action) => {
     if (action === 'bgm') {
       setBgm(!bgmOn());
@@ -162,7 +162,7 @@ function showSettings() {
       player.save();
       location.reload();
     } else if (action === 'rename') {
-      const n = prompt('あたらしい なまえ（6もじまで）', player.s.name);
+      const n = prompt('新しい パイロット名（6文字まで）', player.s.name);
       if (n && n.trim()) {
         player.s.name = n.trim().slice(0, 6);
         player.save();
@@ -170,7 +170,7 @@ function showSettings() {
         showSettings();
       }
     } else if (action === 'reset') {
-      if (confirm('ほんとうに データを けしますか？')) {
+      if (confirm('本当に データを 消しますか？')) {
         player.reset();
         location.reload();
       }
@@ -197,14 +197,14 @@ function useSpot(spot, { auto = false } = {}) {
   const T = SPOT_TYPES[spot.type];
   const remain = spotRemaining(spot);
   if (remain > 0) {
-    toast(`${T.name}： あと ${Math.ceil(remain / 60000)}ふんで ふっかつ`);
+    toast(`${T.name}： あと ${Math.ceil(remain / 60000)}分で 使えます`);
     return;
   }
   if (spot.type === 'spring') {
     player.fullHeal();
     player.s.spotUsed[spot.id] = Date.now();
     sfx.heal();
-    toast('いずみの みずを のんだ。 HPとMPが ぜんかいふく！');
+    toast('充電ステーションで フル充電！ HPとENが 全回復！');
   } else if (spot.type === 'chest') {
     player.s.spotUsed[spot.id] = Date.now();
     sfx.chest();
@@ -214,38 +214,38 @@ function useSpot(spot, { auto = false } = {}) {
     if (r < 0.45) {
       const g = randInt(5, 15) * lv;
       player.s.gold += g;
-      msg = `${g}ゴールドを みつけた！`;
+      msg = `${g}クレジットを 見つけた！`;
     } else if (r < 0.72) {
       const n = randInt(1, 2);
       player.addItem('herb', n);
-      msg = `やくそうを ${n}こ みつけた！`;
+      msg = `リペアキットを ${n}個 見つけた！`;
     } else if (r < 0.84) {
       player.addItem('potion');
-      msg = 'じょうやくそうを みつけた！';
+      msg = 'ハイリペアキットを 見つけた！';
     } else if (r < 0.93) {
       player.addItem('ether');
-      msg = 'まほうのみずを みつけた！';
+      msg = 'エネルギーセルを 見つけた！';
     } else {
       const id = ['seedA', 'seedD', 'seedH'][randInt(0, 2)];
       player.addItem(id);
-      msg = `なんと ${ITEMS[id].name}を みつけた！`;
+      msg = `なんと ${ITEMS[id].name}を 見つけた！`;
     }
-    toast(`たからばこを あけた！ ${msg}`, 3000);
+    toast(`補給コンテナを 開けた！ ${msg}`, 3000);
   } else if (spot.type === 'shop') {
     showShop();
   } else if (spot.type === 'church' && auto) {
     // ウォークモード：画面を開かずに回復だけする
     player.fullHeal();
     sfx.heal();
-    toast('きょうかいで いのりを ささげた。 HPとMPが ぜんかいふく！');
+    toast('司令部で 整備を 受けた。 HPとENが 全回復！');
   } else if (spot.type === 'church') {
     player.fullHeal();
     sfx.heal();
     const next = player.nextExp;
-    openModal('きょうかい', `
-      <p>かみの みまもりが ありますように。</p>
-      <p>${escapeHtml(player.s.name)}が つぎの レベルになるには あと <b style="color:var(--accent)">${next === null ? '-' : next}</b> の けいけんちが ひつようです。</p>
-      <p>ぼうけんを きろくし、 HPとMPを かいふくしました。</p>`);
+    openModal('司令部', `
+      <p>こちら司令部。 よく 戻った。</p>
+      <p>${escapeHtml(player.s.name)}が 次の レベルになるには あと <b style="color:var(--accent)">${next === null ? '-' : next}</b> の 経験値が 必要だ。</p>
+      <p>戦闘データを 記録し、 機体を 修理した（HPとEN 全回復）。</p>`);
   }
   player.save();
   updateHud();
@@ -256,16 +256,16 @@ function shopHtml() {
   const s = player.s;
   const row = (label, note, price, action, arg, disabled) => `
     <div class="list-row"><div>${label}<small>${note}</small></div>
-    <button data-action="${action}" data-arg="${arg}" ${disabled ? 'disabled' : ''}>${price}G</button></div>`;
-  let html = `<div>しょじきん： <b style="color:var(--accent)">${s.gold} G</b></div>`;
-  html += '<div class="section-title">どうぐ</div>';
-  html += SHOP_ITEMS.map((id) => row(ITEMS[id].name, `${ITEMS[id].desc}（もっている：${s.items[id] || 0}）`, ITEMS[id].price, 'buy', id, s.gold < ITEMS[id].price)).join('');
-  html += '<div class="section-title">ぶき</div>';
+    <button data-action="${action}" data-arg="${arg}" ${disabled ? 'disabled' : ''}>${price}C</button></div>`;
+  let html = `<div>所持クレジット： <b style="color:var(--accent)">${s.gold} C</b></div>`;
+  html += '<div class="section-title">アイテム</div>';
+  html += SHOP_ITEMS.map((id) => row(ITEMS[id].name, `${ITEMS[id].desc}（所持：${s.items[id] || 0}）`, ITEMS[id].price, 'buy', id, s.gold < ITEMS[id].price)).join('');
+  html += '<div class="section-title">武器</div>';
   const wIdx = WEAPONS.findIndex((w) => w.id === s.weapon);
   html += WEAPONS.slice(1).map((w, i) => i + 1 <= wIdx
     ? `<div class="list-row"><div>${w.name}<small>こうげき+${w.atk}</small></div><span>${i + 1 === wIdx ? 'そうびちゅう' : '-'}</span></div>`
     : row(w.name, `こうげき+${w.atk}`, w.price, 'weapon', w.id, s.gold < w.price)).join('');
-  html += '<div class="section-title">よろい</div>';
+  html += '<div class="section-title">装甲</div>';
   const aIdx = ARMORS.findIndex((a) => a.id === s.armor);
   html += ARMORS.slice(1).map((a, i) => i + 1 <= aIdx
     ? `<div class="list-row"><div>${a.name}<small>しゅび+${a.def}</small></div><span>${i + 1 === aIdx ? 'そうびちゅう' : '-'}</span></div>`
@@ -274,21 +274,21 @@ function shopHtml() {
 }
 
 function showShop() {
-  openModal('どうぐや「いらっしゃいませ！」', shopHtml(), (action, id) => {
+  openModal('パーツショップ「いらっしゃい！」', shopHtml(), (action, id) => {
     const s = player.s;
     if (action === 'buy') {
       const it = ITEMS[id];
       if (s.gold < it.price) return;
       s.gold -= it.price;
       player.addItem(id);
-      toast(`${it.name}を かった！`);
+      toast(`${it.name}を 買った！`);
     } else if (action === 'weapon' || action === 'armor') {
       const eq = (action === 'weapon' ? WEAPONS : ARMORS).find((x) => x.id === id);
       if (!eq || s.gold < eq.price) return;
       s.gold -= eq.price;
       s[action] = id;
       sfx.chest();
-      toast(`${eq.name}を そうびした！`);
+      toast(`${eq.name}を 装備した！`);
     }
     player.save();
     updateHud();
@@ -327,7 +327,7 @@ function initMap(start) {
   }).addTo(map);
 
   playerMarker = L.marker([start.lat, start.lng], {
-    icon: L.divIcon({ className: 'mk', html: '<div class="player-mk">🧙</div>', iconSize: [40, 40], iconAnchor: [20, 20] }),
+    icon: L.divIcon({ className: 'mk', html: '<div class="player-mk">🤖</div>', iconSize: [40, 40], iconAnchor: [20, 20] }),
     zIndexOffset: 1000,
     interactive: false,
   }).addTo(map);
@@ -347,7 +347,7 @@ function renderMonsters() {
   monsterLayer.clearLayers();
   currentMonsters = monstersAround(pos, player.s.lv).filter((sp) => !player.s.defeated[sp.id]);
   for (const sp of currentMonsters) {
-    const m = L.marker([sp.lat, sp.lng], { icon: icon(sp.mon.icon, sp.mon.boss ? 'boss' : '', sp.mon.boss ? 56 : 44) });
+    const m = L.marker([sp.lat, sp.lng], { icon: icon(sp.mon.icon, sp.mon.boss ? 'boss' : sp.mon.metal ? 'metal' : '', sp.mon.boss ? 56 : 44) });
     m.on('click', (ev) => {
       L.DomEvent.stopPropagation(ev);
       tryBattle(sp);
@@ -365,7 +365,7 @@ function renderSpots() {
     m.on('click', (ev) => {
       L.DomEvent.stopPropagation(ev);
       const d = distance(pos, spot);
-      if (d > RANGE) return toast(`${SPOT_TYPES[spot.type].name}： とおすぎる！ あと ${Math.ceil(d - RANGE)}m`);
+      if (d > RANGE) return toast(`${SPOT_TYPES[spot.type].name}： 遠すぎる！ あと ${Math.ceil(d - RANGE)}m`);
       useSpot(spot);
     });
     spotLayer.addLayer(m);
@@ -386,7 +386,7 @@ async function tryBattle(sp, { auto = false } = {}) {
   if (inBattle) return;
   const d = distance(pos, sp);
   if (d > RANGE) {
-    toast(`${sp.mon.name}： とおすぎる！ あと ${Math.ceil(d - RANGE)}m ちかづこう`);
+    toast(`${sp.mon.name}： 射程外！ あと ${Math.ceil(d - RANGE)}m 近づこう`);
     return;
   }
   if (player.s.hp <= 0) player.fullHeal();
@@ -457,7 +457,7 @@ function checkWalkEncounter() {
   if (Date.now() < encounterReadyAt) return;
   if (player.s.hp <= player.stats.maxHp * 0.3) {
     if (!lowHpWarned) {
-      toast('ウォークモード：HPが すくないので せんとうを さけています。いずみで かいふくしよう', 4500);
+      toast('ウォークモード：HPが 少ないので 戦闘を 避けています。充電ステーションで 回復しよう', 4500);
       lowHpWarned = true;
     }
     return;
@@ -478,7 +478,7 @@ $('btn-walk').onclick = () => {
   const on = !player.s.walkMode;
   setWalkMode(on);
   toast(on
-    ? 'ウォークモード ON：モンスターとの せんとう・たからばこ・かいふくを じどうで おこないます'
+    ? 'ウォークモード ON：敵との 戦闘・補給・回復を 自動で 行います'
     : 'ウォークモード OFF', 3200);
   if (on) setTimeout(walkTick, 1500);
 };
@@ -508,8 +508,8 @@ function setPosition(p, accuracy = 0) {
 
 function startGps() {
   if (!('geolocation' in navigator)) {
-    $('hud-gps').textContent = 'GPS: つかえません';
-    toast('この たんまつでは GPSが つかえません。デモモードを ためしてね', 4000);
+    $('hud-gps').textContent = 'GPS: 使えません';
+    toast('この 端末では GPSが 使えません。デモモードを ためしてね', 4000);
     return;
   }
   gpsWatchId = navigator.geolocation.watchPosition(
@@ -523,13 +523,13 @@ function startGps() {
     },
     (err) => {
       if (gpsFixed && err.code !== 1) {
-        $('hud-gps').textContent = 'GPS: でんぱが よわい';
+        $('hud-gps').textContent = 'GPS: 電波が 弱い';
         return;
       }
       $('hud-gps').textContent = 'GPS: エラー';
       const msg = err.code === 1
-        ? 'いちじょうほうが きょかされていません。せっていから きょかするか、デモモードで あそんでね'
-        : 'いちじょうほうが とれません。そとに でてみてね';
+        ? '位置情報が 許可されていません。設定から 許可するか、デモモードで 遊んでね'
+        : '位置情報が 取れません。外に 出てみてね';
       toast(msg, 5000);
     },
     { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 },
@@ -586,7 +586,7 @@ function startDemo() {
   initMap(start);
   setPosition(start);
   setupDpad();
-  toast('デモモード：地図をタップするか 十字キーで いどう', 3500);
+  toast('デモモード：地図をタップするか 十字キーで 移動', 3500);
 }
 
 /* ---------- 画面を消さない ---------- */
@@ -615,7 +615,7 @@ function boot(demo) {
   unlockAudio();
   const nameInput = $('name-input');
   if (!$('title-new').classList.contains('hidden')) {
-    player.s.name = (nameInput.value.trim() || 'ゆうしゃ').slice(0, 6);
+    player.s.name = (nameInput.value.trim() || 'アイアン').slice(0, 6);
   }
   player.s.demo = demo;
   player.save();
@@ -645,7 +645,7 @@ function init() {
 
   $('btn-start').onclick = () => boot(hasSave ? player.s.demo : false);
   $('btn-demo').onclick = () => boot(true);
-  if (hasSave) $('btn-demo').textContent = player.s.demo ? 'GPSモードで あそぶ' : 'デモモードで あそぶ';
+  if (hasSave) $('btn-demo').textContent = player.s.demo ? 'GPSモードで 遊ぶ' : 'デモモードで 遊ぶ';
   if (hasSave && player.s.demo) $('btn-demo').onclick = () => boot(false);
 
   updateHud();

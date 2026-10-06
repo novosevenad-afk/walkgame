@@ -59,7 +59,7 @@ button, input { font: inherit; color: inherit; }
 
 /* マップ */
 #map { position: fixed; inset: 0; background: #2b3a2b; }
-.leaflet-tile-pane { filter: saturate(1.35) hue-rotate(-8deg) brightness(.95) contrast(1.05); }
+.leaflet-tile-pane { filter: sepia(.45) saturate(.85) hue-rotate(-12deg) brightness(.8) contrast(1.15); }
 .leaflet-control-attribution { font-size: 9px; font-family: sans-serif; }
 .leaflet-bottom.leaflet-right { bottom: calc(60px + var(--safe-b)); }
 
@@ -245,11 +245,11 @@ button, input { font: inherit; color: inherit; }
 
 /* バトル */
 #battle {
-  --gold: #e9bf55;
-  --gold-hi: #fff0b0;
-  --gold-lo: #8a5a14;
-  --wood: #3a240e;
-  --wood-hi: #5c3a17;
+  --gold: #ff9a2e;
+  --gold-hi: #ffd9a8;
+  --gold-lo: #7a3a0a;
+  --wood: #1b1f25;
+  --wood-hi: #3a414b;
   position: fixed; inset: 0; z-index: 1000;
   display: flex; flex-direction: column;
   padding: calc(6px + var(--safe-t)) 10px calc(10px + var(--safe-b));
@@ -265,33 +265,34 @@ button, input { font: inherit; color: inherit; }
 #battle-bg {
   position: absolute; inset: 0; z-index: -1;
   background:
-    radial-gradient(ellipse 70% 22% at 50% 44%, rgba(255, 214, 150, .35), transparent 70%),
-    radial-gradient(ellipse 140% 70% at 50% 62%, #b47d40 0%, #8d5c2c 38%, #5a3818 62%, transparent 80%),
-    linear-gradient(#0d0805 0%, #24160a 22%, #4a2f15 38%, #6b4520 60%, #4a2e13 100%);
+    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48ZyBmaWxsPSIjMWIxNTE3Ij48cmVjdCB4PSIwIiB5PSI1MSIgd2lkdGg9IjI4IiBoZWlnaHQ9IjQ5Ii8+PHBhdGggZD0iTTAgNTEgbDExIC00IGw4IDIgeiIvPjxyZWN0IHg9IjI5IiB5PSI2MyIgd2lkdGg9IjM2IiBoZWlnaHQ9IjM3Ii8+PHJlY3QgeD0iNjciIHk9IjYyIiB3aWR0aD0iMzEiIGhlaWdodD0iMzgiLz48cGF0aCBkPSJNNjcgNjIgbDEyIC0xMiBsOSA1IHoiLz48cmVjdCB4PSIxMDMiIHk9IjQyIiB3aWR0aD0iMjEiIGhlaWdodD0iNTgiLz48cmVjdCB4PSIxMjkiIHk9IjIwIiB3aWR0aD0iMzYiIGhlaWdodD0iODAiLz48cGF0aCBkPSJNMTI5IDIwIGwxNCAtNyBsMTEgMiB6Ii8+PHJlY3QgeD0iMTYzIiB5PSI1NSIgd2lkdGg9IjM1IiBoZWlnaHQ9IjQ1Ii8+PHJlY3QgeD0iMTk5IiB5PSI2MiIgd2lkdGg9IjIxIiBoZWlnaHQ9IjM4Ii8+PHJlY3QgeD0iMjI0IiB5PSIzMCIgd2lkdGg9IjMxIiBoZWlnaHQ9IjcwIi8+PHBhdGggZD0iTTIyNCAzMCBsMTIgLTExIGw5IDQgeiIvPjxyZWN0IHg9IjI1NCIgeT0iMzIiIHdpZHRoPSIyMCIgaGVpZ2h0PSI2OCIvPjxyZWN0IHg9IjI3MSIgeT0iNSIgd2lkdGg9IjIxIiBoZWlnaHQ9Ijk1Ii8+PHBhdGggZD0iTTI3MSA1IGw4IC05IGw2IDMgeiIvPjxyZWN0IHg9IjI5NyIgeT0iMjciIHdpZHRoPSIyOCIgaGVpZ2h0PSI3MyIvPjxyZWN0IHg9IjMyOCIgeT0iNjIiIHdpZHRoPSI0MCIgaGVpZ2h0PSIzOCIvPjxwYXRoIGQ9Ik0zMjggNjIgbDE2IC04IGwxMiA3IHoiLz48cmVjdCB4PSIzNzEiIHk9IjQ5IiB3aWR0aD0iMjkiIGhlaWdodD0iNTEiLz48L2c+PGcgZmlsbD0iI2ZmOWEzYyIgb3BhY2l0eT0iLjU1Ij48cmVjdCB4PSIzMyIgeT0iNzEiIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIxNDEiIHk9Ijc5IiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PHJlY3QgeD0iMTY5IiB5PSI3MyIgd2lkdGg9IjMiIGhlaWdodD0iMyIvPjxyZWN0IHg9IjIwOSIgeT0iODkiIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIyMzQiIHk9Ijg2IiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PHJlY3QgeD0iMjMyIiB5PSI4MCIgd2lkdGg9IjMiIGhlaWdodD0iMyIvPjxyZWN0IHg9IjI2OCIgeT0iNjYiIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIyNjEiIHk9Ijc2IiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PHJlY3QgeD0iMjgwIiB5PSIxNiIgd2lkdGg9IjMiIGhlaWdodD0iMyIvPjxyZWN0IHg9IjI4NCIgeT0iMjAiIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIyODYiIHk9IjgyIiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PHJlY3QgeD0iMzE4IiB5PSI4NCIgd2lkdGg9IjMiIGhlaWdodD0iMyIvPjxyZWN0IHg9IjMxNCIgeT0iMzciIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIzMDIiIHk9IjUwIiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PHJlY3QgeD0iMzQ5IiB5PSI5MCIgd2lkdGg9IjMiIGhlaWdodD0iMyIvPjxyZWN0IHg9IjM1NSIgeT0iODkiIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIzNTMiIHk9IjY4IiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PHJlY3QgeD0iMzc1IiB5PSI2OCIgd2lkdGg9IjMiIGhlaWdodD0iMyIvPjxyZWN0IHg9IjM4MyIgeT0iNjMiIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIzODEiIHk9IjgwIiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PC9nPjwvc3ZnPg==") center 0 / 100% 40% no-repeat,
+    radial-gradient(ellipse 70% 22% at 50% 46%, rgba(255, 150, 80, .28), transparent 70%),
+    radial-gradient(ellipse 140% 70% at 50% 64%, #6e625a 0%, #4c443f 38%, #2e2927 62%, transparent 80%),
+    linear-gradient(#140c10 0%, #2c1a1a 14%, #6a3420 30%, #a4582a 38%, #3b332f 41%, #2c2725 100%);
 }
 #battle-bg::before {
-  /* 地面の白線（パースをつけて奥へ） */
-  content: ""; position: absolute; left: -30%; right: -30%; top: 34%; height: 70%;
+  /* 道路の白線と黄色い区画線（パースをつけて奥へ） */
+  content: ""; position: absolute; left: -30%; right: -30%; top: 40%; height: 70%;
   background:
-    radial-gradient(ellipse 46% 40% at 50% 30%, transparent 62%, rgba(255, 236, 200, .16) 63%, rgba(255, 236, 200, .16) 65%, transparent 66%),
-    repeating-linear-gradient(90deg, transparent 0 14%, rgba(255, 236, 200, .07) 14% 14.6%);
+    linear-gradient(90deg, transparent 49.2%, rgba(255, 204, 51, .35) 49.2% 50.8%, transparent 50.8%),
+    repeating-linear-gradient(90deg, transparent 0 14%, rgba(255, 255, 255, .07) 14% 14.6%);
   transform: perspective(420px) rotateX(58deg);
   transform-origin: 50% 0;
 }
 #battle-bg::after {
-  /* 岩壁のごつごつ感と周辺減光 */
+  /* 煙と周辺減光 */
   content: ""; position: absolute; inset: 0;
   background:
-    radial-gradient(circle at 12% 18%, rgba(0,0,0,.2) 0 6%, transparent 7%),
-    radial-gradient(circle at 78% 12%, rgba(0,0,0,.18) 0 8%, transparent 9%),
-    radial-gradient(circle at 46% 26%, rgba(255,255,255,.04) 0 5%, transparent 6%),
-    radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, .55) 100%);
+    radial-gradient(ellipse 40% 18% at 18% 30%, rgba(40, 30, 30, .55), transparent 70%),
+    radial-gradient(ellipse 35% 16% at 82% 26%, rgba(40, 30, 30, .5), transparent 70%),
+    radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, .6) 100%);
 }
 #battle.boss #battle-bg {
   background:
-    radial-gradient(ellipse 70% 22% at 50% 44%, rgba(220, 120, 255, .3), transparent 70%),
-    radial-gradient(ellipse 140% 70% at 50% 62%, #6e3a7a 0%, #4a2258 38%, #2a1236 62%, transparent 80%),
-    linear-gradient(#07020c 0%, #170823 22%, #2d1240 38%, #3d1a50 60%, #22102e 100%);
+    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48ZyBmaWxsPSIjMWIxNTE3Ij48cmVjdCB4PSIwIiB5PSI1MSIgd2lkdGg9IjI4IiBoZWlnaHQ9IjQ5Ii8+PHBhdGggZD0iTTAgNTEgbDExIC00IGw4IDIgeiIvPjxyZWN0IHg9IjI5IiB5PSI2MyIgd2lkdGg9IjM2IiBoZWlnaHQ9IjM3Ii8+PHJlY3QgeD0iNjciIHk9IjYyIiB3aWR0aD0iMzEiIGhlaWdodD0iMzgiLz48cGF0aCBkPSJNNjcgNjIgbDEyIC0xMiBsOSA1IHoiLz48cmVjdCB4PSIxMDMiIHk9IjQyIiB3aWR0aD0iMjEiIGhlaWdodD0iNTgiLz48cmVjdCB4PSIxMjkiIHk9IjIwIiB3aWR0aD0iMzYiIGhlaWdodD0iODAiLz48cGF0aCBkPSJNMTI5IDIwIGwxNCAtNyBsMTEgMiB6Ii8+PHJlY3QgeD0iMTYzIiB5PSI1NSIgd2lkdGg9IjM1IiBoZWlnaHQ9IjQ1Ii8+PHJlY3QgeD0iMTk5IiB5PSI2MiIgd2lkdGg9IjIxIiBoZWlnaHQ9IjM4Ii8+PHJlY3QgeD0iMjI0IiB5PSIzMCIgd2lkdGg9IjMxIiBoZWlnaHQ9IjcwIi8+PHBhdGggZD0iTTIyNCAzMCBsMTIgLTExIGw5IDQgeiIvPjxyZWN0IHg9IjI1NCIgeT0iMzIiIHdpZHRoPSIyMCIgaGVpZ2h0PSI2OCIvPjxyZWN0IHg9IjI3MSIgeT0iNSIgd2lkdGg9IjIxIiBoZWlnaHQ9Ijk1Ii8+PHBhdGggZD0iTTI3MSA1IGw4IC05IGw2IDMgeiIvPjxyZWN0IHg9IjI5NyIgeT0iMjciIHdpZHRoPSIyOCIgaGVpZ2h0PSI3MyIvPjxyZWN0IHg9IjMyOCIgeT0iNjIiIHdpZHRoPSI0MCIgaGVpZ2h0PSIzOCIvPjxwYXRoIGQ9Ik0zMjggNjIgbDE2IC04IGwxMiA3IHoiLz48cmVjdCB4PSIzNzEiIHk9IjQ5IiB3aWR0aD0iMjkiIGhlaWdodD0iNTEiLz48L2c+PGcgZmlsbD0iI2ZmOWEzYyIgb3BhY2l0eT0iLjU1Ij48cmVjdCB4PSIzMyIgeT0iNzEiIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIxNDEiIHk9Ijc5IiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PHJlY3QgeD0iMTY5IiB5PSI3MyIgd2lkdGg9IjMiIGhlaWdodD0iMyIvPjxyZWN0IHg9IjIwOSIgeT0iODkiIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIyMzQiIHk9Ijg2IiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PHJlY3QgeD0iMjMyIiB5PSI4MCIgd2lkdGg9IjMiIGhlaWdodD0iMyIvPjxyZWN0IHg9IjI2OCIgeT0iNjYiIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIyNjEiIHk9Ijc2IiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PHJlY3QgeD0iMjgwIiB5PSIxNiIgd2lkdGg9IjMiIGhlaWdodD0iMyIvPjxyZWN0IHg9IjI4NCIgeT0iMjAiIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIyODYiIHk9IjgyIiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PHJlY3QgeD0iMzE4IiB5PSI4NCIgd2lkdGg9IjMiIGhlaWdodD0iMyIvPjxyZWN0IHg9IjMxNCIgeT0iMzciIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIzMDIiIHk9IjUwIiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PHJlY3QgeD0iMzQ5IiB5PSI5MCIgd2lkdGg9IjMiIGhlaWdodD0iMyIvPjxyZWN0IHg9IjM1NSIgeT0iODkiIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIzNTMiIHk9IjY4IiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PHJlY3QgeD0iMzc1IiB5PSI2OCIgd2lkdGg9IjMiIGhlaWdodD0iMyIvPjxyZWN0IHg9IjM4MyIgeT0iNjMiIHdpZHRoPSIzIiBoZWlnaHQ9IjMiLz48cmVjdCB4PSIzODEiIHk9IjgwIiB3aWR0aD0iMyIgaGVpZ2h0PSIzIi8+PC9nPjwvc3ZnPg==") center 0 / 100% 40% no-repeat,
+    radial-gradient(ellipse 70% 22% at 50% 46%, rgba(255, 40, 60, .35), transparent 70%),
+    radial-gradient(ellipse 140% 70% at 50% 64%, #5a2a30 0%, #3a1a20 38%, #220e12 62%, transparent 80%),
+    linear-gradient(#0c0408 0%, #2a0a10 18%, #6a1020 32%, #2a1216 41%, #1a0a0c 100%);
 }
 
 #battle-crest { width: min(70%, 280px); margin: 4px auto 0; }
@@ -377,8 +378,8 @@ button, input { font: inherit; color: inherit; }
 /* コマンドパネル */
 #battle-panel {
   position: relative; height: 128px;
-  background: linear-gradient(rgba(58, 36, 14, .92), rgba(36, 22, 8, .94));
-  border: 3px solid #d9cfb8; border-radius: 16px;
+  background: linear-gradient(rgba(38, 43, 51, .93), rgba(18, 20, 26, .95));
+  border: 3px solid #8f99a5; border-radius: 16px;
   box-shadow: inset 0 0 0 2px rgba(0,0,0,.5), 0 6px 14px rgba(0,0,0,.5);
   padding: 10px;
 }
@@ -408,12 +409,13 @@ button, input { font: inherit; color: inherit; }
 .sub-item {
   display: flex; justify-content: space-between; align-items: center; gap: 4px;
   background: linear-gradient(var(--wood-hi), var(--wood));
-  border: 2px solid var(--gold); border-radius: 8px; padding: 7px 10px;
-  font-size: 15px; cursor: pointer; text-align: left;
+  border: 2px solid var(--gold); border-radius: 8px; padding: 4px 10px;
+  font-size: 14px; line-height: 1.3; cursor: pointer; text-align: left; min-width: 0;
 }
-.sub-item small { opacity: .75; font-size: 12px; }
+.sub-item small { opacity: .75; font-size: 12px; flex-shrink: 0; }
+.sub-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sub-item:disabled { opacity: .4; }
-.sub-item.back { border-color: #d9cfb8; justify-content: center; }
+.sub-item.back { border-color: #8f99a5; justify-content: center; }
 .sub-empty { grid-column: 1 / -1; padding: 6px; opacity: .8; }
 
 /* にげる・オートバトル */
@@ -429,14 +431,14 @@ button, input { font: inherit; color: inherit; }
 .bround:disabled { opacity: .5; }
 .bauto {
   height: 52px; border-radius: 12px; cursor: pointer;
-  background: linear-gradient(#6b4a1c, #3f2a0c);
+  background: linear-gradient(#3a414b, #1b1f25);
   border: 3px solid var(--gold); box-shadow: inset 0 0 0 2px var(--gold-lo), 0 3px 0 #1a0f05;
   display: flex; align-items: center; justify-content: center; gap: 10px;
   font-size: 17px; text-shadow: 1px 1px 0 #000;
 }
 .bauto svg { width: 40px; height: 20px; }
 .bauto[aria-pressed="true"] {
-  background: linear-gradient(#c98a1e, #7a4a0a);
+  background: linear-gradient(#ff9a2e, #a3480c);
   animation: autoGlow 1.2s ease-in-out infinite;
 }
 @keyframes autoGlow { 50% { box-shadow: inset 0 0 0 2px var(--gold-lo), 0 0 14px var(--gold-hi); } }
@@ -455,6 +457,13 @@ button, input { font: inherit; color: inherit; }
 .fx-svg { position: absolute; left: 0; top: 0; overflow: visible; filter: drop-shadow(0 0 6px rgba(255,255,255,.7)); }
 .hero { position: absolute; left: 0; top: 0; pointer-events: none; }
 .hero svg { display: block; filter: drop-shadow(0 4px 4px rgba(0,0,0,.4)); }
+/* ロボットの発光パーツ */
+.hero .hero-thrust { animation: thrust .18s steps(2) infinite; transform-box: fill-box; transform-origin: 50% 0; }
+.hero .hero-eye, .hero .hero-core { animation: glowPulse 1.6s ease-in-out infinite; }
+.hero .hero-blink { animation: blink 1s steps(2) infinite; }
+@keyframes thrust { 50% { transform: scaleY(.75); opacity: .75; } }
+@keyframes glowPulse { 50% { opacity: .65; } }
+@media (prefers-reduced-motion: reduce) { .hero .hero-thrust, .hero .hero-eye, .hero .hero-core, .hero .hero-blink { animation: none; } }
 .fx-glint {
   position: absolute; width: 34px; height: 34px;
   background:
@@ -467,3 +476,7 @@ button, input { font: inherit; color: inherit; }
 .fx-spark { position: absolute; width: 5px; height: 28px; border-radius: 2px; box-shadow: 0 0 6px currentColor; }
 .fx-emoji { position: absolute; line-height: 1; filter: drop-shadow(0 0 8px rgba(255,200,80,.7)); }
 .fx-tint { position: absolute; inset: 0; }
+
+/* 生き物の形の敵マシンは金属の質感に */
+.metal { filter: grayscale(1) sepia(.18) hue-rotate(170deg) brightness(.7) contrast(1.75) drop-shadow(0 0 2px rgba(255, 120, 60, .5)); }
+#enemy-icon.metal { filter: grayscale(1) sepia(.18) hue-rotate(170deg) brightness(.7) contrast(1.75) drop-shadow(0 6px 4px rgba(0,0,0,.45)); }

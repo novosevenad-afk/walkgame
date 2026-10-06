@@ -63,10 +63,10 @@ export function monstersAround(pos, lv, slot = currentSlot()) {
 }
 
 export const SPOT_TYPES = {
-  spring: { icon: '⛲', name: 'かいふくのいずみ', cooldown: 3 * 60 * 1000 },
-  chest:  { icon: '🎁', name: 'たからばこ',       cooldown: 30 * 60 * 1000 },
-  shop:   { icon: '🏠', name: 'どうぐや',         cooldown: 0 },
-  church: { icon: '⛪', name: 'きょうかい',       cooldown: 0 },
+  spring: { icon: '🔋', name: '充電ステーション', cooldown: 3 * 60 * 1000 },
+  chest:  { icon: '📦', name: '補給コンテナ',     cooldown: 30 * 60 * 1000 },
+  shop:   { icon: '🔧', name: 'パーツショップ',   cooldown: 0 },
+  church: { icon: '📡', name: '司令部',           cooldown: 0 },
 };
 
 // スポットは時間で変わらない固定配置
