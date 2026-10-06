@@ -1,5 +1,5 @@
 // オフラインでも起動できるようにアプリ本体をキャッシュする
-const CACHE = 'walkquest-v12';
+const CACHE = 'walkquest-v13';
 const ASSETS = [
   './',
   './index.html',
@@ -11,7 +11,7 @@ const ASSETS = [
   './js/sound.js',
   './js/util.js',
   './js/world.js',
-  './js/title-art.js',
+  './images/title.jpg',
   './js/fx.js',
   './js/hero.js',
   './manifest.webmanifest',
