@@ -8,7 +8,7 @@ import { startTitleArt } from './title-art.js';
 import { sfx, unlockAudio, audioRunning, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
-const APP_VERSION = 'ver 1.8';  // 更新が届いているか確認できるようタイトルに表示
+const APP_VERSION = 'ver 1.9';  // 更新が届いているか確認できるようタイトルに表示
 const RANGE = 60;                 // タップで反応する距離(m)
 const DEMO_START = { lat: 35.681236, lng: 139.767125 }; // 東京駅
 const L = window.L;
@@ -21,6 +21,7 @@ let inBattle = false;
 let onField = false; // タイトル画面を抜けてフィールドにいるか
 let currentKey = '';
 let monsterLayer, spotLayer;
+let currentMonsters = [];  // いま地図に出ているモンスター
 let gpsWatchId = null;
 let gpsFixed = false;
 
@@ -325,6 +326,7 @@ function initMap(start) {
     zIndexOffset: 1000,
     interactive: false,
   }).addTo(map);
+  playerMarker.getElement().querySelector('.player-mk').classList.toggle('walk', !!player.s.walkMode);
 
   map.on('dragstart', () => { follow = false; });
   map.on('click', (ev) => {
@@ -338,8 +340,8 @@ function initMap(start) {
 
 function renderMonsters() {
   monsterLayer.clearLayers();
-  for (const sp of monstersAround(pos, player.s.lv)) {
-    if (player.s.defeated[sp.id]) continue;
+  currentMonsters = monstersAround(pos, player.s.lv).filter((sp) => !player.s.defeated[sp.id]);
+  for (const sp of currentMonsters) {
     const m = L.marker([sp.lat, sp.lng], { icon: icon(sp.mon.icon, sp.mon.boss ? 'boss' : '', sp.mon.boss ? 56 : 44) });
     m.on('click', (ev) => {
       L.DomEvent.stopPropagation(ev);
@@ -374,7 +376,7 @@ function refreshWorld(force = false) {
   renderSpots();
 }
 
-async function tryBattle(sp) {
+async function tryBattle(sp, { auto = false } = {}) {
   if (inBattle) return;
   const d = distance(pos, sp);
   if (d > RANGE) {
@@ -383,13 +385,67 @@ async function tryBattle(sp) {
   }
   if (player.s.hp <= 0) player.fullHeal();
   inBattle = true;
+  cancelAnimationFrame(walkAnim);  // デモで移動中ならその場で止まる
   closeModal();
   startBgm('battle');
-  const result = await startBattle(sp, updateHud);
+  const result = await startBattle(sp, updateHud, { auto });
   inBattle = false;
   if (document.visibilityState === 'visible') startBgm('field');
+  if (result === 'run') fledFrom.add(sp.id);
   if (result === 'win' || result === 'lose') refreshWorld(true);
+  // ウォークモード：少し間をあけてから次のエンカウントを探す
+  encounterReadyAt = Date.now() + WALK_COOLDOWN;
+  setTimeout(checkWalkEncounter, WALK_COOLDOWN + 100);
 }
+
+/* ---------- ウォークモード ---------- */
+const WALK_COOLDOWN = 4000;  // バトル後、次に自動で戦うまでの時間(ms)
+const fledFrom = new Set();  // にげた敵とは自動で戦わない
+let encounterReadyAt = 0;
+let lowHpWarned = false;
+
+function setWalkMode(on) {
+  player.s.walkMode = on;
+  player.save();
+  const b = $('btn-walk');
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  b.querySelector('.walk-state').textContent = on ? 'ON' : 'OFF';
+  const mk = playerMarker && playerMarker.getElement() && playerMarker.getElement().querySelector('.player-mk');
+  if (mk) mk.classList.toggle('walk', on);
+}
+
+// 近くにモンスターがいたら自動でバトルを始める
+function checkWalkEncounter() {
+  if (!player.s.walkMode || inBattle || !pos || !onField) return;
+  if (!$('modal').classList.contains('hidden')) return;
+  if (Date.now() < encounterReadyAt) return;
+  if (player.s.hp <= player.stats.maxHp * 0.3) {
+    if (!lowHpWarned) {
+      toast('ウォークモード：HPが すくないので せんとうを さけています。いずみで かいふくしよう', 4500);
+      lowHpWarned = true;
+    }
+    return;
+  }
+  lowHpWarned = false;
+  let best = null;
+  let bestD = Infinity;
+  for (const sp of currentMonsters) {
+    if (sp.mon.boss || player.s.defeated[sp.id] || fledFrom.has(sp.id)) continue;
+    const d = distance(pos, sp);
+    if (d <= RANGE && d < bestD) { best = sp; bestD = d; }
+  }
+  if (best) tryBattle(best, { auto: true });
+}
+
+$('btn-walk').onclick = () => {
+  sfx.cursor();
+  const on = !player.s.walkMode;
+  setWalkMode(on);
+  toast(on
+    ? 'ウォークモード ON：ちかくの モンスターと じどうで たたかいます'
+    : 'ウォークモード OFF', 2800);
+  if (on) checkWalkEncounter();
+};
 
 /* ---------- 位置更新 ---------- */
 function setPosition(p, accuracy = 0) {
@@ -411,6 +467,7 @@ function setPosition(p, accuracy = 0) {
   if (follow) map.panTo([p.lat, p.lng], { animate: !player.s.demo });
   refreshWorld();
   updateHud();
+  checkWalkEncounter();
 }
 
 function startGps() {
@@ -531,6 +588,7 @@ function boot(demo) {
   player.save();
   $('title').classList.add('hidden');
   onField = true;
+  setWalkMode(!!player.s.walkMode);
   startBgm();
   updateHud();
   requestWakeLock();
@@ -539,6 +597,7 @@ function boot(demo) {
 
   // 10分ごとのモンスター入れかえを監視
   setInterval(() => {
+    checkWalkEncounter();
     if (!inBattle) refreshWorld();
     if (!inBattle && spotLayer) renderSpots();
   }, 30000);

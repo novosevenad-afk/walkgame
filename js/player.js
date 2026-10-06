@@ -19,6 +19,7 @@ function defaultState() {
     defeated: {},     // スポーンID -> true（同じ個体と再戦しない）
     spotUsed: {},     // スポットID -> 使用時刻
     walked: 0,        // 歩いた距離(m)
+    walkMode: false,  // ウォークモード（近づいた敵と自動で戦う）
     wins: 0,
     demo: false,
     demoPos: null,

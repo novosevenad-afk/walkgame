@@ -85,7 +85,28 @@ button, input { font: inherit; color: inherit; }
 .gauge i.low { background: var(--hp-low); }
 
 /* マップボタン */
-#map-buttons { position: fixed; right: 12px; bottom: calc(80px + var(--safe-b)); z-index: 500; }
+#map-buttons {
+  position: fixed; right: 12px; bottom: calc(80px + var(--safe-b)); z-index: 500;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+}
+.walk-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 8px 6px 8px; border-radius: 28px;
+  background: var(--win); border: 3px solid var(--line);
+  font-size: 12px; line-height: 1.15; text-align: left; cursor: pointer;
+  box-shadow: 0 0 0 2px #000, 0 4px 12px rgba(0, 0, 0, .5);
+}
+.walk-ic { font-size: 22px; }
+.walk-state { font-weight: 400; font-size: 13px; padding: 3px 7px; border-radius: 10px; background: #3a3a4a; min-width: 38px; text-align: center; }
+.walk-btn[aria-pressed="true"] { border-color: var(--accent); animation: walkGlow 1.4s ease-in-out infinite; }
+.walk-btn[aria-pressed="true"] .walk-state { background: var(--accent); color: #1a1400; }
+.walk-btn[aria-pressed="true"] .walk-ic { animation: walkStep .5s steps(2) infinite; }
+@keyframes walkGlow { 50% { box-shadow: 0 0 0 2px #000, 0 0 16px rgba(250, 204, 21, .85); } }
+@keyframes walkStep { 50% { transform: translateY(-2px) rotate(-6deg); } }
+.player-mk.walk { box-shadow: 0 0 0 3px #facc15, 0 0 18px #facc15; }
+@media (prefers-reduced-motion: reduce) {
+  .walk-btn[aria-pressed="true"], .walk-btn[aria-pressed="true"] .walk-ic { animation: none; }
+}
 .round {
   width: 48px; height: 48px; border-radius: 50%;
   background: var(--win); border: 3px solid var(--line);
