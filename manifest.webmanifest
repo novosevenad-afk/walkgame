@@ -1,6 +1,6 @@
 {
-  "name": "ウォーククエスト",
-  "short_name": "ウォーククエスト",
+  "name": "アイアンウォーカー",
+  "short_name": "アイアンウォーカー",
   "description": "あるいて たたかう 位置情報RPG",
   "start_url": "./",
   "scope": "./",

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101028">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>ウォーククエスト</title>
+  <title>アイアンウォーカー</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon.svg">
@@ -126,12 +126,14 @@
 
   <!-- タイトル -->
   <div id="title" class="overlay">
-    <canvas id="title-art" aria-hidden="true"></canvas>
+    <div class="title-bg-blur" aria-hidden="true"></div>
+    <img id="title-bg" src="images/title.jpg" alt="">
     <div class="title-shade"></div>
     <div class="title-box">
       <div class="title-top">
-        <h1>ウォーク<br>クエスト</h1>
-        <p class="title-sub">あるいて たたかう いちじょうほうRPG</p>
+        <!-- ロゴは背景画像に入っているので、文字は読み上げ用にだけ残す -->
+        <h1 class="sr-only">アイアンウォーカー</h1>
+        <p class="sr-only">あるいて たたかう いちじょうほうRPG</p>
       </div>
       <div class="title-bottom">
         <div id="title-new" class="hidden">
