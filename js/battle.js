@@ -3,6 +3,7 @@ import { player } from './player.js';
 import { ITEMS } from './data.js';
 import { rand, randInt, clamp, sleep, escapeHtml } from './util.js';
 import { sfx, stopBgm } from './sound.js';
+import { heroPortraitSVG } from './hero.js';
 import { slashFx, spellFx, healFx, clawFx, breathFx, showHero, removeHero, layoutHero, heroHurt, heroVictory, heroDown } from './fx.js';
 
 const $ = (id) => document.getElementById(id);
@@ -10,36 +11,6 @@ let msgLines = [];
 let skipTyping = false;
 let autoMode = false;
 let guarding = false;
-
-// ステータスカードの顔（12x12 ドット）
-const PORTRAIT = [
-  '....hhhh....',
-  '..hhhhhhhh..',
-  '.hhhhyyhhhh.',
-  '.hhhhhhhhhh.',
-  '.hbbbbbbbbh.',
-  '.bbssssssbb.',
-  '.bskssssksb.',
-  '.bssssssssb.',
-  '..sssmmsss..',
-  '...ssssss...',
-  '..caaaaaac..',
-  '.ccayyyyacc.',
-];
-const PORTRAIT_COLORS = {
-  h: '#a9b6c8', y: '#f5c542', b: '#7a4520', s: '#f2c79b', k: '#1a1a2a', m: '#c46a5a', c: '#2f5fb3', a: '#d5dde8',
-};
-
-function drawPortrait(canvas) {
-  canvas.width = 12;
-  canvas.height = 12;
-  const g = canvas.getContext('2d');
-  PORTRAIT.forEach((row, y) => [...row].forEach((ch, x) => {
-    if (!PORTRAIT_COLORS[ch]) return;
-    g.fillStyle = PORTRAIT_COLORS[ch];
-    g.fillRect(x, y, 1, 1);
-  }));
-}
 
 function makeEnemy(mon, lv) {
   const base = mon.boss ? { ...mon, ...mon.scale(lv) } : { ...mon };
@@ -54,7 +25,7 @@ function buildStatusCard() {
     <div class="pcard">
       <span class="pbadge" hidden>🛡️</span>
       <div class="pcard-top">
-        <canvas aria-hidden="true"></canvas>
+        <div class="portrait">${heroPortraitSVG()}</div>
         <div class="pstat">
           <div class="num"><span>HP</span><b data-k="hp"></b></div>
           <div class="gauge"><i data-k="hpbar"></i></div>
@@ -65,7 +36,6 @@ function buildStatusCard() {
       <div class="plabel"><span>ゆうしゃ</span><span data-k="lv"></span></div>
       <div class="pname">${escapeHtml(player.s.name)}</div>
     </div>`;
-  drawPortrait($('battle-party').querySelector('canvas'));
 }
 
 function renderStatus() {
