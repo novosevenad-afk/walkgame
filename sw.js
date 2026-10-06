@@ -1,5 +1,5 @@
 // オフラインでも起動できるようにアプリ本体をキャッシュする
-const CACHE = 'walkquest-v11';
+const CACHE = 'walkquest-v12';
 const ASSETS = [
   './',
   './index.html',
