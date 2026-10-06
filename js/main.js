@@ -8,7 +8,7 @@ import { startTitleArt } from './title-art.js';
 import { sfx, unlockAudio, audioRunning, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
-const APP_VERSION = 'ver 1.9';  // 更新が届いているか確認できるようタイトルに表示
+const APP_VERSION = 'ver 2.0';  // 更新が届いているか確認できるようタイトルに表示
 const RANGE = 60;                 // タップで反応する距離(m)
 const DEMO_START = { lat: 35.681236, lng: 139.767125 }; // 東京駅
 const L = window.L;
@@ -22,6 +22,7 @@ let onField = false; // タイトル画面を抜けてフィールドにいる�
 let currentKey = '';
 let monsterLayer, spotLayer;
 let currentMonsters = [];  // いま地図に出ているモンスター
+let currentSpots = [];     // いま地図に出ているスポット
 let gpsWatchId = null;
 let gpsFixed = false;
 
@@ -193,7 +194,7 @@ function spotRemaining(spot) {
   return Math.max(0, used + cd - Date.now());
 }
 
-function useSpot(spot) {
+function useSpot(spot, { auto = false } = {}) {
   const T = SPOT_TYPES[spot.type];
   const remain = spotRemaining(spot);
   if (remain > 0) {
@@ -233,6 +234,11 @@ function useSpot(spot) {
     toast(`たからばこを あけた！ ${msg}`, 3000);
   } else if (spot.type === 'shop') {
     showShop();
+  } else if (spot.type === 'church' && auto) {
+    // ウォークモード：画面を開かずに回復だけする
+    player.fullHeal();
+    sfx.heal();
+    toast('きょうかいで いのりを ささげた。 HPとMPが ぜんかいふく！');
   } else if (spot.type === 'church') {
     player.fullHeal();
     sfx.heal();
@@ -353,7 +359,8 @@ function renderMonsters() {
 
 function renderSpots() {
   spotLayer.clearLayers();
-  for (const spot of spotsAround(pos)) {
+  currentSpots = spotsAround(pos);
+  for (const spot of currentSpots) {
     const used = spotRemaining(spot) > 0;
     const m = L.marker([spot.lat, spot.lng], { icon: icon(SPOT_TYPES[spot.type].icon, `spot ${used ? 'used' : ''}`) });
     m.on('click', (ev) => {
@@ -395,7 +402,7 @@ async function tryBattle(sp, { auto = false } = {}) {
   if (result === 'win' || result === 'lose') refreshWorld(true);
   // ウォークモード：少し間をあけてから次のエンカウントを探す
   encounterReadyAt = Date.now() + WALK_COOLDOWN;
-  setTimeout(checkWalkEncounter, WALK_COOLDOWN + 100);
+  setTimeout(walkTick, WALK_COOLDOWN + 100);
 }
 
 /* ---------- ウォークモード ---------- */
@@ -412,6 +419,36 @@ function setWalkMode(on) {
   b.querySelector('.walk-state').textContent = on ? 'ON' : 'OFF';
   const mk = playerMarker && playerMarker.getElement() && playerMarker.getElement().querySelector('.player-mk');
   if (mk) mk.classList.toggle('walk', on);
+}
+
+function needsHeal() {
+  const st = player.stats;
+  return player.s.hp < st.maxHp || player.s.mp < st.maxMp;
+}
+
+// 近くの宝箱を開け、HP・MPが減っていれば回復スポットを使う（使ったら true）
+function checkWalkSpots() {
+  if (!player.s.walkMode || inBattle || !pos || !onField) return false;
+  if (!$('modal').classList.contains('hidden')) return false;
+  for (const spot of currentSpots) {
+    if (distance(pos, spot) > RANGE || spotRemaining(spot) > 0) continue;
+    const heal = spot.type === 'spring' || spot.type === 'church';
+    if (spot.type === 'chest' || (heal && needsHeal())) {
+      useSpot(spot, { auto: true });
+      return true;
+    }
+  }
+  return false;
+}
+
+// ウォークモードの1回ぶんの処理：スポットを先に使い、なければ敵を探す
+function walkTick() {
+  if (checkWalkSpots()) {
+    // 知らせを読めるよう少し待ってから続きを処理する
+    setTimeout(walkTick, 1800);
+    return;
+  }
+  checkWalkEncounter();
 }
 
 // 近くにモンスターがいたら自動でバトルを始める
@@ -442,9 +479,9 @@ $('btn-walk').onclick = () => {
   const on = !player.s.walkMode;
   setWalkMode(on);
   toast(on
-    ? 'ウォークモード ON：ちかくの モンスターと じどうで たたかいます'
-    : 'ウォークモード OFF', 2800);
-  if (on) checkWalkEncounter();
+    ? 'ウォークモード ON：モンスターとの せんとう・たからばこ・かいふくを じどうで おこないます'
+    : 'ウォークモード OFF', 3200);
+  if (on) setTimeout(walkTick, 1500);
 };
 
 /* ---------- 位置更新 ---------- */
@@ -467,7 +504,7 @@ function setPosition(p, accuracy = 0) {
   if (follow) map.panTo([p.lat, p.lng], { animate: !player.s.demo });
   refreshWorld();
   updateHud();
-  checkWalkEncounter();
+  walkTick();
 }
 
 function startGps() {
@@ -597,7 +634,7 @@ function boot(demo) {
 
   // 10分ごとのモンスター入れかえを監視
   setInterval(() => {
-    checkWalkEncounter();
+    walkTick();
     if (!inBattle) refreshWorld();
     if (!inBattle && spotLayer) renderSpots();
   }, 30000);
