@@ -89,24 +89,8 @@ button, input { font: inherit; color: inherit; }
   position: fixed; right: 12px; bottom: calc(80px + var(--safe-b)); z-index: 500;
   display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
 }
-.walk-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 6px 8px 6px 8px; border-radius: 28px;
-  background: var(--win); border: 3px solid var(--line);
-  font-size: 12px; line-height: 1.15; text-align: left; cursor: pointer;
-  box-shadow: 0 0 0 2px #000, 0 4px 12px rgba(0, 0, 0, .5);
-}
-.walk-ic { font-size: 22px; }
-.walk-state { font-weight: 400; font-size: 13px; padding: 3px 7px; border-radius: 10px; background: #3a3a4a; min-width: 38px; text-align: center; }
-.walk-btn[aria-pressed="true"] { border-color: var(--accent); animation: walkGlow 1.4s ease-in-out infinite; }
-.walk-btn[aria-pressed="true"] .walk-state { background: var(--accent); color: #1a1400; }
-.walk-btn[aria-pressed="true"] .walk-ic { animation: walkStep .5s steps(2) infinite; }
-@keyframes walkGlow { 50% { box-shadow: 0 0 0 2px #000, 0 0 16px rgba(250, 204, 21, .85); } }
-@keyframes walkStep { 50% { transform: translateY(-2px) rotate(-6deg); } }
 .player-mk.walk { box-shadow: 0 0 0 3px #facc15, 0 0 18px #facc15; }
-@media (prefers-reduced-motion: reduce) {
-  .walk-btn[aria-pressed="true"], .walk-btn[aria-pressed="true"] .walk-ic { animation: none; }
-}
+
 .round {
   width: 48px; height: 48px; border-radius: 50%;
   background: var(--win); border: 3px solid var(--line);
@@ -132,7 +116,19 @@ button, input { font: inherit; color: inherit; }
   bottom: calc(8px + var(--safe-b)); z-index: 500;
   display: flex; padding: 2px;
 }
-#nav button { flex: 1; background: none; border: none; padding: 10px 0; cursor: pointer; }
+#nav button {
+  flex: 1; min-width: 0; background: none; border: none; padding: 6px 0; min-height: 50px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+}
+#btn-walk .walk-label { font-size: 12px; white-space: nowrap; }
+#btn-walk .walk-state { font-weight: 400; font-size: 11px; padding: 1px 9px; border-radius: 8px; background: #3a3a4a; }
+#btn-walk[aria-pressed="true"] { color: var(--accent); }
+#btn-walk[aria-pressed="true"] .walk-state { background: var(--accent); color: #1a1400; animation: walkGlow 1.4s ease-in-out infinite; }
+@keyframes walkGlow { 50% { box-shadow: 0 0 10px rgba(250, 204, 21, .9); } }
+@media (prefers-reduced-motion: reduce) { #btn-walk[aria-pressed="true"] .walk-state { animation: none; } }
+.list-row button.on { border-color: var(--accent); color: var(--accent); }
+.diff-up { color: #4ade80; } .diff-down { color: #f87171; }
+.menu-back { text-align: left; padding: 4px 0 10px; margin-bottom: 4px; border-bottom: 1px dashed #666; }
 #nav button:active { color: var(--accent); }
 
 /* トースト */
@@ -480,3 +476,6 @@ button, input { font: inherit; color: inherit; }
 /* 生き物の形の敵マシンは金属の質感に */
 .metal { filter: grayscale(1) sepia(.18) hue-rotate(170deg) brightness(.7) contrast(1.75) drop-shadow(0 0 2px rgba(255, 120, 60, .5)); }
 #enemy-icon.metal { filter: grayscale(1) sepia(.18) hue-rotate(170deg) brightness(.7) contrast(1.75) drop-shadow(0 6px 4px rgba(0,0,0,.45)); }
+
+.sub-head { font-size: 13px; opacity: .75; margin: 6px 0 0; }
+.note { font-size: 12px; opacity: .7; margin: 8px 0 0; line-height: 1.6; }

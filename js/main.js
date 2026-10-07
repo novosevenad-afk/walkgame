@@ -7,7 +7,7 @@ import { startBattle } from './battle.js';
 import { sfx, unlockAudio, audioRunning, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
-const APP_VERSION = 'ver 3.0';  // 更新が届いているか確認できるようタイトルに表示
+const APP_VERSION = 'ver 3.1';  // 更新が届いているか確認できるようタイトルに表示
 const RANGE = 60;                 // タップで反応する距離(m)
 const DEMO_START = { lat: 35.681236, lng: 139.767125 }; // 東京駅
 const L = window.L;
@@ -76,12 +76,27 @@ $('modal').addEventListener('click', (ev) => {
   }
 });
 
-function showStatus() {
+// 持っている装備の一覧（付け替えボタン付き）
+function equipRows(kind) {
+  const list = kind === 'weapon' ? WEAPONS : ARMORS;
+  const key = kind === 'weapon' ? 'atk' : 'def';
+  const label = kind === 'weapon' ? '攻撃' : '防御';
+  const cur = kind === 'weapon' ? player.weapon : player.armor;
+  return list.filter((eq) => player.owns(kind, eq.id)).map((eq) => {
+    const on = eq.id === cur.id;
+    const d = eq[key] - cur[key];
+    const diff = on || !d ? '' : ` <span class="${d > 0 ? 'diff-up' : 'diff-down'}">(${d > 0 ? '+' : ''}${d})</span>`;
+    return `<div class="list-row"><div>${eq.name}<small>${label}+${eq[key]}${diff}</small></div>
+      <button data-action="equip-${kind}" data-arg="${eq.id}" class="${on ? 'on' : ''}" ${on ? 'disabled' : ''}>${on ? '装備中' : '装備'}</button></div>`;
+  }).join('');
+}
+
+function statusHtml() {
   const s = player.s;
   const st = player.stats;
   const next = player.nextExp;
   const spells = player.spells.map((sp) => `${sp.name}(EN${sp.mp})`).join('、') || 'なし';
-  openModal(`${s.name} 機体ステータス`, `
+  return `
     <div class="kv">
       <span>レベル</span><span>${s.lv}</span>
       <span>HP</span><span>${s.hp} / ${st.maxHp}</span>
@@ -95,13 +110,31 @@ function showStatus() {
       <span>撃破数</span><span>${s.wins}</span>
       <span>移動距離</span><span>${(s.walked / 1000).toFixed(2)} km</span>
     </div>
-    <div class="section-title">装備</div>
-    <div class="kv">
-      <span>武器</span><span>${player.weapon.name} (+${player.weapon.atk})</span>
-      <span>装甲</span><span>${player.armor.name} (+${player.armor.def})</span>
-    </div>
+    <div class="section-title">装備（タップで付け替え）</div>
+    <div class="sub-head">武器</div>
+    ${equipRows('weapon')}
+    <div class="sub-head">装甲</div>
+    ${equipRows('armor')}
+    <p class="note">買った装備は なくならず、いつでも 付け替えられます。新しい装備は パーツショップ 🔧 で。</p>
     <div class="section-title">スキル</div>
-    <div>${spells}</div>`);
+    <div>${spells}</div>`;
+}
+
+function showStatus() {
+  openModal(`${player.s.name} 機体`, statusHtml(), (action, id) => {
+    const kind = action === 'equip-weapon' ? 'weapon' : action === 'equip-armor' ? 'armor' : null;
+    if (!kind) return;
+    const eq = player.equip(kind, id);
+    if (!eq) return;
+    sfx.chest();
+    player.save();
+    updateHud();
+    toast(`${eq.name}を 装備した！`);
+    const box = $('modal-content');
+    const y = box.scrollTop;
+    box.innerHTML = statusHtml();
+    box.scrollTop = y;
+  });
 }
 
 function itemsHtml() {
@@ -128,18 +161,31 @@ function showItems() {
   });
 }
 
+function showMenu() {
+  openModal('メニュー', `
+    <div class="list-row"><div>エネミー図鑑<small>撃破した 敵マシンの 記録</small></div><button data-action="book">開く</button></div>
+    <div class="list-row"><div>設定<small>BGM・効果音・モード・データ</small></div><button data-action="settings">開く</button></div>`,
+  (action) => {
+    if (action === 'book') showBook();
+    else if (action === 'settings') showSettings();
+  });
+}
+
+const MENU_BACK = '<button class="cmd menu-back" data-action="menu">◀ メニューに もどる</button>';
+
 function showBook() {
   const all = [...MONSTERS, BOSS];
   const found = all.filter((m) => player.s.book[m.id]).length;
-  openModal(`エネミー図鑑 ${found}/${all.length}`, `<div class="book-grid">${all.map((m) => {
+  openModal(`エネミー図鑑 ${found}/${all.length}`, `${MENU_BACK}<div class="book-grid">${all.map((m) => {
     const n = player.s.book[m.id] || 0;
     return `<div class="book-cell ${n ? '' : 'unknown'}"><span class="ic ${m.metal && n ? 'metal' : ''}">${m.icon}</span>${n ? escapeHtml(m.name) : '？？？'}<br>${n ? `${n}機` : ''}</div>`;
-  }).join('')}</div>`);
+  }).join('')}</div>`, (action) => { if (action === 'menu') showMenu(); });
 }
 
 function showSettings() {
   const demo = player.s.demo;
   openModal('設定', `
+    ${MENU_BACK}
     <div class="list-row"><div>BGM<small>フィールドと 戦闘の 音楽</small></div><button data-action="bgm">${bgmOn() ? 'ON' : 'OFF'}</button></div>
     <div class="list-row"><div>効果音</div><button data-action="sound">${soundEnabled() ? 'ON' : 'OFF'}</button></div>
     <div class="list-row"><div>今のモード：${demo ? 'デモ' : 'GPS'}<small>${demo ? '地図タップ／十字キーで移動' : '実際に歩いて移動'}</small></div>
@@ -148,7 +194,9 @@ function showSettings() {
     <div class="list-row"><div>データを 消す<small>最初から やり直します</small></div><button data-action="reset">消す</button></div>
     <p style="font-size:12px;opacity:.7;margin-top:12px">敵マシンは10分ごとに入れかわります。<br>地図データ © OpenStreetMap contributors</p>`,
   (action) => {
-    if (action === 'bgm') {
+    if (action === 'menu') {
+      showMenu();
+    } else if (action === 'bgm') {
       setBgm(!bgmOn());
       try { localStorage.setItem('walkquest-bgm', bgmOn() ? '1' : '0'); } catch (e) { /* ignore */ }
       if (bgmOn()) startBgm();
@@ -182,7 +230,7 @@ $('nav').addEventListener('click', (ev) => {
   const b = ev.target.closest('button');
   if (!b || inBattle) return;
   sfx.cursor();
-  ({ status: showStatus, items: showItems, book: showBook, settings: showSettings })[b.dataset.open]();
+  ({ status: showStatus, items: showItems, menu: showMenu, walk: toggleWalkMode })[b.dataset.open]();
 });
 
 /* ---------- スポット ---------- */
@@ -260,16 +308,12 @@ function shopHtml() {
   let html = `<div>所持クレジット： <b style="color:var(--accent)">${s.gold} C</b></div>`;
   html += '<div class="section-title">アイテム</div>';
   html += SHOP_ITEMS.map((id) => row(ITEMS[id].name, `${ITEMS[id].desc}（所持：${s.items[id] || 0}）`, ITEMS[id].price, 'buy', id, s.gold < ITEMS[id].price)).join('');
-  html += '<div class="section-title">武器</div>';
-  const wIdx = WEAPONS.findIndex((w) => w.id === s.weapon);
-  html += WEAPONS.slice(1).map((w, i) => i + 1 <= wIdx
-    ? `<div class="list-row"><div>${w.name}<small>こうげき+${w.atk}</small></div><span>${i + 1 === wIdx ? 'そうびちゅう' : '-'}</span></div>`
-    : row(w.name, `こうげき+${w.atk}`, w.price, 'weapon', w.id, s.gold < w.price)).join('');
-  html += '<div class="section-title">装甲</div>';
-  const aIdx = ARMORS.findIndex((a) => a.id === s.armor);
-  html += ARMORS.slice(1).map((a, i) => i + 1 <= aIdx
-    ? `<div class="list-row"><div>${a.name}<small>しゅび+${a.def}</small></div><span>${i + 1 === aIdx ? 'そうびちゅう' : '-'}</span></div>`
-    : row(a.name, `しゅび+${a.def}`, a.price, 'armor', a.id, s.gold < a.price)).join('');
+  const equipList = (kind, list, key, label) => list.slice(1).map((eq) => (player.owns(kind, eq.id)
+    ? `<div class="list-row"><div>${eq.name}<small>${label}+${eq[key]}</small></div><span>${s[kind] === eq.id ? '装備中' : '所持'}</span></div>`
+    : row(eq.name, `${label}+${eq[key]}`, eq.price, kind, eq.id, s.gold < eq.price))).join('');
+  html += '<div class="section-title">武器</div>' + equipList('weapon', WEAPONS, 'atk', '攻撃');
+  html += '<div class="section-title">装甲</div>' + equipList('armor', ARMORS, 'def', '防御');
+  html += '<p class="note">買った装備は なくなりません。「機体」から いつでも 付け替えられます。</p>';
   return html;
 }
 
@@ -283,12 +327,10 @@ function showShop() {
       player.addItem(id);
       toast(`${it.name}を 買った！`);
     } else if (action === 'weapon' || action === 'armor') {
-      const eq = (action === 'weapon' ? WEAPONS : ARMORS).find((x) => x.id === id);
-      if (!eq || s.gold < eq.price) return;
-      s.gold -= eq.price;
-      s[action] = id;
+      const eq = player.buyEquip(action, id);
+      if (!eq) return;
       sfx.chest();
-      toast(`${eq.name}を 装備した！`);
+      toast(`${eq.name}を 買って 装備した！`);
     }
     player.save();
     updateHud();
@@ -473,15 +515,14 @@ function checkWalkEncounter() {
   if (best) tryBattle(best, { auto: true });
 }
 
-$('btn-walk').onclick = () => {
-  sfx.cursor();
+function toggleWalkMode() {
   const on = !player.s.walkMode;
   setWalkMode(on);
   toast(on
     ? 'ウォークモード ON：敵との 戦闘・補給・回復を 自動で 行います'
     : 'ウォークモード OFF', 3200);
   if (on) setTimeout(walkTick, 1500);
-};
+}
 
 /* ---------- 位置更新 ---------- */
 function setPosition(p, accuracy = 0) {
