@@ -3,6 +3,7 @@
 // そのため同じ場所・同じ時間帯なら誰が見ても同じモンスターがいる。
 import { MONSTERS, BOSS } from './data.js';
 import { seededRng, clamp } from './util.js';
+import { nearestRoadPoint } from './roads.js';
 
 const MON_CELL = 0.0012;   // 約130m
 const MON_RADIUS = 3;      // 周囲 ±3 セル
@@ -24,6 +25,12 @@ function tierRange(lv) {
   return { min: Math.max(1, max - 3), max };
 }
 
+// 道路データがあれば、いちばん近い道路の上に寄せる
+function onRoad(lat, lng) {
+  const r = nearestRoadPoint({ lat, lng });
+  return r ? [r.lat, r.lng] : [lat, lng];
+}
+
 export function monstersAround(pos, lv, slot = currentSlot()) {
   const c = cellOf(pos, MON_CELL);
   const { min, max } = tierRange(lv);
@@ -34,10 +41,10 @@ export function monstersAround(pos, lv, slot = currentSlot()) {
       const cx = c.x + dx, cy = c.y + dy;
       const rng = seededRng(`m:${cx}:${cy}:${slot}`);
       const r = rng();
-      const count = r < 0.6 ? 0 : r < 0.93 ? 1 : 2;
+      // 1セルあたり平均 約0.85体（以前の約1.8倍）
+      const count = r < 0.35 ? 0 : r < 0.8 ? 1 : 2;
       for (let i = 0; i < count; i++) {
-        const lat = (cy + rng()) * MON_CELL;
-        const lng = (cx + rng()) * MON_CELL;
+        const [lat, lng] = onRoad((cy + rng()) * MON_CELL, (cx + rng()) * MON_CELL);
         // 強い個体ほど出にくい重み付け
         const weights = pool.map((m) => 1 + (max - m.tier) * 0.6);
         let pick = rng() * weights.reduce((a, b) => a + b, 0);
@@ -50,12 +57,8 @@ export function monstersAround(pos, lv, slot = currentSlot()) {
       }
       // まれにボス
       if (rng() < 0.008) {
-        list.push({
-          id: `${cx}:${cy}:${slot}:boss`,
-          lat: (cy + rng()) * MON_CELL,
-          lng: (cx + rng()) * MON_CELL,
-          mon: BOSS,
-        });
+        const [lat, lng] = onRoad((cy + rng()) * MON_CELL, (cx + rng()) * MON_CELL);
+        list.push({ id: `${cx}:${cy}:${slot}:boss`, lat, lng, mon: BOSS });
       }
     }
   }

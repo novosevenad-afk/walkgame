@@ -4,10 +4,11 @@ import { ITEMS, WEAPONS, ARMORS, SHOP_ITEMS, MONSTERS, BOSS } from './data.js';
 import { monstersAround, spotsAround, areaKey, currentSlot, pruneDefeated, SPOT_TYPES } from './world.js';
 import { distance, offset, randInt, escapeHtml } from './util.js';
 import { startBattle } from './battle.js';
+import { ensureRoads } from './roads.js';
 import { sfx, unlockAudio, audioRunning, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
-const APP_VERSION = 'ver 3.1';  // 更新が届いているか確認できるようタイトルに表示
+const APP_VERSION = 'ver 3.2';  // 更新が届いているか確認できるようタイトルに表示
 const RANGE = 60;                 // タップで反応する距離(m)
 const DEMO_START = { lat: 35.681236, lng: 139.767125 }; // 東京駅
 const L = window.L;
@@ -419,6 +420,8 @@ function refreshWorld(force = false) {
   const key = areaKey(pos);
   if (!force && key === currentKey) return;
   currentKey = key;
+  // まわりの道路を用意し、届いたら敵を道路の上に置き直す
+  ensureRoads(pos, () => { if (!inBattle) refreshWorld(true); });
   pruneDefeated(player.s.defeated, currentSlot());
   renderMonsters();
   renderSpots();
