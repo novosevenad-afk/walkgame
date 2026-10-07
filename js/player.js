@@ -13,6 +13,8 @@ function defaultState() {
     gold: 20,
     weapon: 'w0',
     armor: 'a0',
+    ownedWeapons: ['w0'],  // 買った武器（付け替えても消えない）
+    ownedArmors: ['a0'],   // 買った装甲
     bonus: { atk: 0, def: 0, hp: 0 },
     items: { herb: 3 },
     book: {},         // モンスターID -> 倒した数
@@ -34,6 +36,9 @@ export const player = {
       const raw = localStorage.getItem(SAVE_KEY);
       if (raw) {
         this.s = Object.assign(defaultState(), JSON.parse(raw));
+        // 以前のセーブには所持装備の記録がないので、最初の装備と今の装備を持っていることにする
+        this.s.ownedWeapons = [...new Set(['w0', ...this.s.ownedWeapons, this.s.weapon])];
+        this.s.ownedArmors = [...new Set(['a0', ...this.s.ownedArmors, this.s.armor])];
         return true;
       }
     } catch (e) {
@@ -110,6 +115,27 @@ export const player = {
     const st = this.stats;
     this.s.hp = st.maxHp;
     this.s.mp = st.maxMp;
+  },
+
+  // kind: 'weapon' | 'armor'
+  owned(kind) { return kind === 'weapon' ? this.s.ownedWeapons : this.s.ownedArmors; },
+  owns(kind, id) { return this.owned(kind).includes(id); },
+
+  // 装備を買って手持ちに加え、そのまま装備する
+  buyEquip(kind, id) {
+    const eq = (kind === 'weapon' ? WEAPONS : ARMORS).find((x) => x.id === id);
+    if (!eq || this.owns(kind, id) || this.s.gold < eq.price) return null;
+    this.s.gold -= eq.price;
+    this.owned(kind).push(id);
+    this.s[kind] = id;
+    return eq;
+  },
+
+  // 持っている装備に付け替える
+  equip(kind, id) {
+    if (!this.owns(kind, id)) return null;
+    this.s[kind] = id;
+    return (kind === 'weapon' ? WEAPONS : ARMORS).find((x) => x.id === id);
   },
 
   addItem(id, n = 1) {
