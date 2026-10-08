@@ -479,3 +479,12 @@ button, input { font: inherit; color: inherit; }
 
 .sub-head { font-size: 13px; opacity: .75; margin: 6px 0 0; }
 .note { font-size: 12px; opacity: .7; margin: 8px 0 0; line-height: 1.6; }
+
+/* タブ（パーツショップ） */
+.tabs { display: flex; gap: 6px; margin: 10px 0 4px; border-bottom: 2px solid #555; }
+.tabs button {
+  flex: 1; padding: 8px 0 6px; background: none; border: 2px solid #555; border-bottom: none;
+  border-radius: 8px 8px 0 0; color: #aaa; cursor: pointer; margin-bottom: -2px;
+}
+.tabs button.on { color: var(--accent); border-color: var(--accent); background: rgba(250, 204, 21, .08); border-bottom: 2px solid var(--win); }
+.tab-body { min-height: 200px; }
