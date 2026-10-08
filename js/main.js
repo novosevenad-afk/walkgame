@@ -8,7 +8,7 @@ import { ensureRoads } from './roads.js';
 import { sfx, unlockAudio, audioRunning, setSound, soundEnabled, startBgm, stopBgm, setBgm, bgmOn } from './sound.js';
 
 const $ = (id) => document.getElementById(id);
-const APP_VERSION = 'ver 3.3';  // 更新が届いているか確認できるようタイトルに表示
+const APP_VERSION = 'ver 3.4';  // 更新が届いているか確認できるようタイトルに表示
 const RANGE = 60;                 // タップで反応する距離(m)
 const DEMO_START = { lat: 35.681236, lng: 139.767125 }; // 東京駅
 const L = window.L;
@@ -301,27 +301,37 @@ function useSpot(spot, { auto = false } = {}) {
   renderSpots();
 }
 
+const SHOP_TABS = [['items', 'アイテム'], ['weapon', '武器'], ['armor', '防具']];
+let shopTab = 'items';  // 最後に見ていたタブ（開き直しても同じタブを出す）
+
 function shopHtml() {
   const s = player.s;
   const row = (label, note, price, action, arg, disabled) => `
     <div class="list-row"><div>${label}<small>${note}</small></div>
     <button data-action="${action}" data-arg="${arg}" ${disabled ? 'disabled' : ''}>${price}C</button></div>`;
-  let html = `<div>所持クレジット： <b style="color:var(--accent)">${s.gold} C</b></div>`;
-  html += '<div class="section-title">アイテム</div>';
-  html += SHOP_ITEMS.map((id) => row(ITEMS[id].name, `${ITEMS[id].desc}（所持：${s.items[id] || 0}）`, ITEMS[id].price, 'buy', id, s.gold < ITEMS[id].price)).join('');
   const equipList = (kind, list, key, label) => list.slice(1).map((eq) => (player.owns(kind, eq.id)
     ? `<div class="list-row"><div>${eq.name}<small>${label}+${eq[key]}</small></div><span>${s[kind] === eq.id ? '装備中' : '所持'}</span></div>`
     : row(eq.name, `${label}+${eq[key]}`, eq.price, kind, eq.id, s.gold < eq.price))).join('');
-  html += '<div class="section-title">武器</div>' + equipList('weapon', WEAPONS, 'atk', '攻撃');
-  html += '<div class="section-title">装甲</div>' + equipList('armor', ARMORS, 'def', '防御');
-  html += '<p class="note">買った装備は なくなりません。「機体」から いつでも 付け替えられます。</p>';
-  return html;
+
+  let html = `<div>所持クレジット： <b style="color:var(--accent)">${s.gold} C</b></div>`;
+  html += `<div class="tabs" role="tablist">${SHOP_TABS.map(([id, label]) =>
+    `<button role="tab" aria-selected="${id === shopTab}" class="${id === shopTab ? 'on' : ''}" data-action="tab" data-arg="${id}">${label}</button>`).join('')}</div>`;
+  html += '<div class="tab-body" role="tabpanel">';
+  if (shopTab === 'items') {
+    html += SHOP_ITEMS.map((id) => row(ITEMS[id].name, `${ITEMS[id].desc}（所持：${s.items[id] || 0}）`, ITEMS[id].price, 'buy', id, s.gold < ITEMS[id].price)).join('');
+  } else {
+    html += shopTab === 'weapon' ? equipList('weapon', WEAPONS, 'atk', '攻撃') : equipList('armor', ARMORS, 'def', '防御');
+    html += '<p class="note">買った装備は なくなりません。「機体」から いつでも 付け替えられます。</p>';
+  }
+  return html + '</div>';
 }
 
 function showShop() {
   openModal('パーツショップ「いらっしゃい！」', shopHtml(), (action, id) => {
     const s = player.s;
-    if (action === 'buy') {
+    if (action === 'tab') {
+      shopTab = id;
+    } else if (action === 'buy') {
       const it = ITEMS[id];
       if (s.gold < it.price) return;
       s.gold -= it.price;
